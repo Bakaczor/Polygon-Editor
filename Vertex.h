@@ -1,23 +1,31 @@
+#ifndef VERTEX_H
+#define VERTEX_H
+#endif // VERTEX_H
+
 #include <QPainter>
 #include <QPoint>
 #include <memory>
 using std::shared_ptr;
 
-#ifndef VERTEX_H
-#define VERTEX_H
-#endif // VERTEX_H
-
-#import "Edge.h"
+//#import "Edge.h"
 
 class Vertex{
 public:
-    QPoint curr_pos;
-    shared_ptr<Edge> first_edge;
-    shared_ptr<Edge> second_edge;
+    Q_PROPERTY(QPoint position READ position WRITE setPosition NOTIFY positionChanged)
+    //shared_ptr<Edge> first_edge;
+    //shared_ptr<Edge> second_edge;
 
-    Vertex(const QPainter& painter);
-    void move(QPoint new_pos);
-    void paint(const QPainter& painter);
+    Vertex(QPoint pos);
+    QPoint position() const;
+    void setPosition(const QPoint& pos);
+    void move(QPoint pos);
+    void paint(QPainter& painter);
+
+signals:
+    void positionChanged();
+
 private:
     const unsigned int m_size = 5;
+    QPoint m_position;
 };
+

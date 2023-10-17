@@ -1,14 +1,20 @@
+#include <QImage>
+#include <QPixmap>
+#include <QPainter>
+#include <memory>
+using std::make_shared;
+using std::make_unique;
+
 #include "Painter.h"
 
-inline QImage Painter::image() const
+Painter::Painter(QObject *parent)
 {
-    return m_image;
+    image = make_shared<QImage>(m_width, m_height, QImage::Format_ARGB32);
+    painter = make_unique<QPainter>(image);
 }
 
-inline void Painter::setImage(const QImage& newImage)
+inline QPixmap Painter::getScene() const
 {
-    if (m_image != newImage) {
-        m_image = newImage;
-        emit imageChanged();
-    }
+    return QPixmap::fromImage(*image);
 }
+

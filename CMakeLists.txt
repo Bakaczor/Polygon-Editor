@@ -22,6 +22,11 @@ qt_add_qml_module(appPolygon-Editor
     SOURCES Polygon.h
     SOURCES Edge.h
     SOURCES
+    RESOURCES
+    RESOURCES ../../../Desktop/plan5.png
+    RESOURCES ../../../Desktop/plan5.png
+    RESOURCES
+    RESOURCES
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

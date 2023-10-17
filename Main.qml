@@ -1,13 +1,16 @@
 import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
+import Painter
 
 ApplicationWindow {
     id: main_window
 
     visible: true
-    width: 800
-    height: 600
+    minimumWidth: 800
+    maximumWidth: 800
+    minimumHeight: 600
+    maximumHeight: 600
     title: "Polygon Editor"
 
     Rectangle {
@@ -19,13 +22,11 @@ ApplicationWindow {
             anchors.margins: 5
             spacing: 5
 
-            Rectangle {
-                id: canvas
+            Image {
+                id: image
                 width: parent.width - 205
                 height: parent.height
-                color: "white"
-
-                signal sendCoordinates(int x, int y)
+                source: myPainter.getScene()
 
                MouseArea {
                    anchors.fill: parent
@@ -43,6 +44,10 @@ ApplicationWindow {
                 height: parent.height
                 color: "grey"
             }
+        }
+
+        Painter {
+            id: myPainter
         }
     }
 }

@@ -2,26 +2,29 @@
 #include <QObject>
 #include <QImage>
 #include <QPixmap>
+#include <QPainter>
+#include <memory>
+using std::shared_ptr;
+using std::unique_ptr;
 
 class Painter : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QImage image READ image WRITE setImage NOTIFY imageChanged)
+    Q_PROPERTY(int width READ width CONSTANT)
+    Q_PROPERTY(int height READ height CONSTANT)
 
     public:
+        unique_ptr<QPainter> painter;
+        shared_ptr<QImage> image;
+
         Painter(QObject *parent = nullptr);
-
-        QImage image() const;
-        void setImage(const QImage &newImage);
-
-    signals:
-        void imageChanged();
-
-    public slots:
-        void paint();
+        inline int width() const { return m_width; };
+        inline int height() const { return m_height; };
+        QPixmap getScene() const;
 
     private:
-        QImage m_image;
+        const int m_width = 600;
+        const int m_height = 600;
 
 };
 
