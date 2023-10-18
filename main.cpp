@@ -5,24 +5,22 @@
 #include <QQuickView>
 #include <QPoint>
 
-#include "Painter.h"
-#include "Vertex.h"
+#include "SceneManager.h"
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-    qmlRegisterType<Painter>("Painter", 1, 0, "Painter");
-    Painter p;
-    Vertex v(QPoint(300, 300));
-
+    SceneManager manager;
+    manager.painter->drawLine(QPoint(300, 300), QPoint(400, 400));
 
 
     QQmlApplicationEngine engine;
+    engine.addImageProvider(QString("SceneManager"), &manager);
+    engine.rootContext()->setContextProperty("SceneManager", &manager);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed,
         &app, []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
     engine.loadFromModule("Polygon-Editor", "Main");
-
     return app.exec();
 }

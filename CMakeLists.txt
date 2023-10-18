@@ -17,8 +17,8 @@ qt_add_qml_module(appPolygon-Editor
     VERSION 1.0
     QML_FILES Main.qml
     SOURCES Vertex.cpp Vertex.h
-    SOURCES Painter.h
-    SOURCES Painter.cpp
+    SOURCES SceneManager.h
+    SOURCES SceneManager.cpp
     SOURCES Polygon.h
     SOURCES Edge.h
     SOURCES

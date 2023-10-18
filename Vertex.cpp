@@ -1,23 +1,10 @@
-#include <QPoint>
-
+#include <QtMath>
 #include "Vertex.h"
 
-Vertex::Vertex(QPoint pos) : m_position(pos) {}
+int Vertex::s_margin = 3;
 
-void Vertex::paint(QPainter& painter) {
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.setBrush(Qt::red);
-    painter.drawPoint(m_position);
-}
-
-QPoint Vertex::position() const {
-    return m_position;
-}
-
-void Vertex::setPosition(const QPoint& pos) {
-    if (m_position != pos) {
-        m_position = pos;
-        //emit positionChanged();
-    }
+bool operator==(const Vertex& v1, const Vertex& v2)
+{
+    return qFabs(v1.x - v2.x) < v1.s_margin && qFabs(v1.y - v2.y) < v2.s_margin;
 }
 

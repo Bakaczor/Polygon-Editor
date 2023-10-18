@@ -1,31 +1,22 @@
-#ifndef VERTEX_H
-#define VERTEX_H
-#endif // VERTEX_H
-
 #include <QPainter>
-#include <QPoint>
-#include <memory>
-using std::shared_ptr;
+#include <QtMath>
 
-//#import "Edge.h"
+class Vertex
+{
+    public:
+        static int s_margin;
+        int x;
+        int y;
+        int thickness;
 
-class Vertex{
-public:
-    Q_PROPERTY(QPoint position READ position WRITE setPosition NOTIFY positionChanged)
-    //shared_ptr<Edge> first_edge;
-    //shared_ptr<Edge> second_edge;
+        Vertex(int x, int y);
+        Vertex(const Vertex& other);
+        Vertex(const Vertex&& other) noexcept;
+        Vertex& operator=(const Vertex& other);
+        Vertex& operator=(const Vertex&& other) noexcept;
 
-    Vertex(QPoint pos);
-    QPoint position() const;
-    void setPosition(const QPoint& pos);
-    void move(QPoint pos);
-    void paint(QPainter& painter);
+        void drag(int x, int y);
+        void paint(QPainter* painter);
 
-signals:
-    void positionChanged();
-
-private:
-    const unsigned int m_size = 5;
-    QPoint m_position;
+        friend bool operator==(const Vertex& v1, const Vertex& v2);
 };
-

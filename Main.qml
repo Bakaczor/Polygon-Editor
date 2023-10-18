@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
-import Painter
 
 ApplicationWindow {
     id: main_window
@@ -13,6 +12,11 @@ ApplicationWindow {
     maximumHeight: 600
     title: "Polygon Editor"
 
+    Connections {
+        target: SceneManager
+        onNewFrameReceived: image.reload();
+    }
+
     Rectangle {
         anchors.fill: parent
         color: "lightgrey"
@@ -22,21 +26,37 @@ ApplicationWindow {
             anchors.margins: 5
             spacing: 5
 
-            Image {
-                id: image
+            Rectangle {
                 width: parent.width - 205
                 height: parent.height
-                source: myPainter.getScene()
+                color: "white"
 
-               MouseArea {
-                   anchors.fill: parent
-                   onClicked: {
-                       print("clicked: " + mouse.x + " " + mouse.y)
+                Image {
+                    id: image
+                    width: parent.width
+                    height: parent.height
+                    source: "image://SceneManager/image"
+                    cache: false
+
+                    function reload() {
+                        var oldSource = source;
+                        source = "";
+                        source = oldSource;
+                    }
+
+                   MouseArea {
+                       anchors.fill: parent
+                       onPressed: {
+                           print("clicked: " + mouse.x + " " + mouse.y)
+                       }
+                       onClicked: {
+                           print("clicked: " + mouse.x + " " + mouse.y)
+                       }
+                       onDoubleClicked: {
+                           print("double clicked: " + mouse.x + " " + mouse.y)
+                       }
                    }
-                   onDoubleClicked: {
-                       print("double clicked: " + mouse.x + " " + mouse.y)
-                   }
-               }
+                }
             }
 
             Rectangle {
@@ -44,10 +64,6 @@ ApplicationWindow {
                 height: parent.height
                 color: "grey"
             }
-        }
-
-        Painter {
-            id: myPainter
         }
     }
 }

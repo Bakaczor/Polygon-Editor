@@ -1,19 +1,17 @@
-/*
-#include <list>
-using std::list;
+#include <QPolygon>
+#include <QList>
+#include <QPainter>
 
-#import "Vertex.h"
-#import "Edge.h"
+#include "Edge.h"
 
-class Polygon {
-public:
-    QPoint curr_pos;
+class Polygon
+{
+    public:
+        static int s_margin;
+        QList<Vertex> vertices;
+        QList<Edge> edges;
 
-    Polygon(const QPainter& painter);
-    void move(QPoint new_pos);
-    void paint(const QPainter& painter);
-private:
-    list<Vertex> m_vertices;
-    list<Edge> m_edges;
+        Polygon(QList<Vertex> vertices);
+        void paint(QPainter* painter);
 };
-*/
+
