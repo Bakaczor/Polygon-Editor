@@ -1,22 +1,21 @@
 #include <QPainter>
+#include <QSharedPointer>
 
 #include "Vertex.h"
+#include "Functions.h"
 
 class Edge {
     public:
         static int s_margin;
-        Vertex* first;
-        Vertex* second;
+        static LineType s_type;
+        QSharedPointer<Vertex> first;
+        QSharedPointer<Vertex> second;
         int thickness;
 
-        Edge(Vertex* first, Vertex* second);
-        Edge(const Edge& other);
-        Edge(const Edge&& other) noexcept;
-        Edge& operator=(const Edge& other);
-        Edge& operator=(const Edge&& other) noexcept;
+        Edge(QSharedPointer<Vertex> v1, QSharedPointer<Vertex> v2, int thic = 2);
 
-        void drag(int x, int y);
-        void paint(QPainter* painter);
+        //void drag(int x, int y);
+        void paint(QSharedPointer<QPainter> painter) const;
 
         friend bool operator==(const Edge& e1, const Edge& e2);
 

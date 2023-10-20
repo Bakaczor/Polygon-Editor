@@ -12,9 +12,13 @@ ApplicationWindow {
     maximumHeight: 600
     title: "Polygon Editor"
 
+    readonly property int offset: 6
+
     Connections {
         target: SceneManager
-        onNewFrameReceived: image.reload();
+        function onImageChanged() {
+            image.reload();
+        }
     }
 
     Rectangle {
@@ -26,36 +30,33 @@ ApplicationWindow {
             anchors.margins: 5
             spacing: 5
 
-            Rectangle {
+            Image {
+                id: image
                 width: parent.width - 205
                 height: parent.height
-                color: "white"
+                source: "image://SceneManager/image"
+                cache: false
 
-                Image {
-                    id: image
-                    width: parent.width
-                    height: parent.height
-                    source: "image://SceneManager/image"
-                    cache: false
+                function reload() {
+                    var oldSource = source;
+                    source = "";
+                    source = oldSource;
+                }
 
-                    function reload() {
-                        var oldSource = source;
-                        source = "";
-                        source = oldSource;
-                    }
+               MouseArea {
+                   id: mouseArea
+                   anchors.fill: parent
+                   hoverEnabled: true
 
-                   MouseArea {
-                       anchors.fill: parent
-                       onPressed: {
-                           print("clicked: " + mouse.x + " " + mouse.y)
-                       }
-                       onClicked: {
-                           print("clicked: " + mouse.x + " " + mouse.y)
-                       }
-                       onDoubleClicked: {
-                           print("double clicked: " + mouse.x + " " + mouse.y)
-                       }
+                   onPressed: {
+                       print("pressed: " + mouseArea.mouseX + " " + mouseArea.mouseY)
+                       SceneManager.isPressed = !SceneManager.isPressed
                    }
+                   onReleased: {
+                       print("released: " + mouseArea.mouseX + " " + mouseArea.mouseY)
+                   }
+                   onDoubleClicked: SceneManager.addVertex(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
+                   onPositionChanged: SceneManager.drawProjection(mouseArea.mouseX + offset, mouseArea.mouseY + offset);
                 }
             }
 

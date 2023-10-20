@@ -9,14 +9,10 @@ class Vertex
         int y;
         int thickness;
 
-        Vertex(int x, int y);
-        Vertex(const Vertex& other);
-        Vertex(const Vertex&& other) noexcept;
-        Vertex& operator=(const Vertex& other);
-        Vertex& operator=(const Vertex&& other) noexcept;
+        Vertex(int x, int y, int thic = 5);
 
-        void drag(int x, int y);
-        void paint(QPainter* painter);
+        void drag(int nx, int ny);
+        void paint(QSharedPointer<QPainter> painter) const;
 
         friend bool operator==(const Vertex& v1, const Vertex& v2);
 };
