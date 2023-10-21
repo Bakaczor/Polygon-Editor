@@ -1,14 +1,19 @@
-#ifndef LINETYPE
-#define LINETYPE
+#ifndef ENUMS
+#define ENUMS
 
-enum class LineType
+enum class Algorithm
 {
     Library, Bresenham
 };
 
-#endif
+enum class Orientation
+{
+    Horizontal, Vertical
+};
 
-//enum class Orientation
-//{
-//    Horizontal, Vertical
-//};
+enum class Geometry
+{
+    Polygon, Edge, Vertex, None
+};
+
+#endif

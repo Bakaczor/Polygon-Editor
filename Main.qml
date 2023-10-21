@@ -48,15 +48,18 @@ ApplicationWindow {
                    anchors.fill: parent
                    hoverEnabled: true
 
-                   onPressed: {
-                       print("pressed: " + mouseArea.mouseX + " " + mouseArea.mouseY)
-                       SceneManager.isPressed = !SceneManager.isPressed
+                   onPressed: SceneManager.checkObjects(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
+                   onReleased: SceneManager.todo(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
+                   onDoubleClicked: {
+                       if (mouseArea.pressedButtons == Qt.LeftButton) {
+                           SceneManager.addVertex(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
+                       }
+                       // WHY IT DOESN"T WORK
+                       //if (mouseArea.pressedButtons == Qt.RightButton) {
+                       //    SceneManager.stopBuilding(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
+                       //}
                    }
-                   onReleased: {
-                       print("released: " + mouseArea.mouseX + " " + mouseArea.mouseY)
-                   }
-                   onDoubleClicked: SceneManager.addVertex(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
-                   onPositionChanged: SceneManager.drawProjection(mouseArea.mouseX + offset, mouseArea.mouseY + offset);
+                   onPositionChanged: SceneManager.drawProjection(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
                 }
             }
 

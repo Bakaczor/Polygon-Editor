@@ -10,16 +10,23 @@ class SceneManager : public QQuickImageProvider
 {
     Q_OBJECT
     public:
-        static LineType s_type;
+        static Algorithm s_type;
+
+        QSharedPointer<QPainter> painter;
 
         QPoint lastPosition;
         QSize size;
+
         QList<Vertex> polyline;
         QList<Polygon> polygons;
-        QSharedPointer<Polygon> currPolygon;
-        QSharedPointer<QPainter> painter;
+
+        Geometry currObject;
+        Vertex* currVertex;
+        Edge* currEdge;
+        Polygon* currPolygon;
 
         SceneManager(QObject *parent = nullptr);
+        ~SceneManager();
         QImage requestImage(const QString &id, QSize *size, const QSize &requestedSize) override;
 
         void paint();
@@ -27,16 +34,20 @@ class SceneManager : public QQuickImageProvider
     public slots:
         void drawProjection(int x, int y);
         void addVertex(int x, int y);
+        void stopBuilding(int x, int y);
+        void checkObjects(int x, int y);
+        void todo(int x, int y);
 
     signals:
         void imageChanged();
 
-        void isPressedChanged();
-
     private:
-        const QColor background = QColor(255, 255, 255, 255);
-        QImage m_image;
+        const QColor m_background = QColor(255, 255, 255, 255);
+
         bool m_isBuilding;
+        bool m_isPressed;
+
+        QImage m_image;
 };
 
 

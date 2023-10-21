@@ -2,24 +2,29 @@
 
 int Vertex::s_margin = 7;
 
-Vertex::Vertex(int x, int y, int thic): x(x), y(y), thickness(thic) {}
+Vertex::Vertex(int x, int y, int thicc): X(x), Y(y), m_thicc(thicc) {}
 
-void Vertex::drag(int nx, int ny)
+void Vertex::drag(int x, int y)
 {
-    x = nx;
-    y = ny;
+    X = x;
+    Y = y;
 }
 
 void Vertex::paint(QSharedPointer<QPainter> painter) const
 {
     QPen p;
-    p.setWidth(thickness);
+    p.setWidth(m_thicc);
     painter->setPen(p);
-    painter->drawPoint(QPoint(x, y));
+    painter->drawPoint(QPoint(X, Y));
+}
+
+Vertex::operator QPoint() const
+{
+    return QPoint(X, Y);
 }
 
 bool operator==(const Vertex& v1, const Vertex& v2)
 {
-    return qFabs(v1.x - v2.x) < v1.s_margin && qFabs(v1.y - v2.y) < v2.s_margin;
+    return qFabs(v1.X - v2.X) < v1.s_margin && qFabs(v1.Y - v2.Y) < v2.s_margin;
 }
 

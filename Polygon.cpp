@@ -4,13 +4,20 @@ int Polygon::s_margin = 3;
 
 Polygon::Polygon(QList<Vertex> verts) : vertices(verts)
 {
+    // create polygon
+    QList<QPoint> points;
+    for (const Vertex& v : verts)
+    {
+        points.append(static_cast<QPoint>(v));
+    }
+    m_polygon = QPolygon(points);
+
+    // create edges
     for (int i = 0; i < vertices.count() - 1; i++)
     {
-        auto v1 = QSharedPointer<Vertex>(&(vertices[i]));
-        auto v2 = QSharedPointer<Vertex>(&(vertices[i + 1]));
-        edges.append(Edge(v1, v2));
+        edges.append(Edge(&(vertices[i]), &(vertices[i + 1])));
     }
-    edges.append(Edge(QSharedPointer<Vertex>(&(vertices.first())), QSharedPointer<Vertex>(&(vertices.last()))));
+    edges.append(Edge(&vertices.first(), &vertices.last()));
 }
 
 void Polygon::paint(QSharedPointer<QPainter> painter) const
@@ -20,4 +27,35 @@ void Polygon::paint(QSharedPointer<QPainter> painter) const
         vertices.at(i).paint(painter);
         edges.at(i).paint(painter);
     }
+}
+
+bool Polygon::contains(const QPoint& p) const
+{
+    return m_polygon.containsPoint(p, Qt::OddEvenFill);
+}
+
+Vertex* Polygon::checkVertices(const QPoint& p)
+{
+    // paralellize
+    for (Vertex& v : vertices)
+    {
+        if (Vertex(p.x(), p.y()) == v)
+        {
+            return &v;
+        }
+    }
+    return nullptr;
+}
+
+Edge* Polygon::checkEdges(const QPoint& p)
+{
+    // paralellize
+    for (Edge& e : edges)
+    {
+        if (e.contains(Vertex(p.x(), p.y())))
+        {
+            return &e;
+        }
+    }
+    return nullptr;
 }
