@@ -15,7 +15,7 @@ class Polygon
         bool contains(const QPoint& p) const;
         Vertex* checkVertices(const QPoint& p);
         Edge* checkEdges(const QPoint& p);
-
+        void rebuild();
     private:
         QPolygon m_polygon;
 };

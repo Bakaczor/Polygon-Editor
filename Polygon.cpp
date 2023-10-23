@@ -4,20 +4,14 @@ int Polygon::s_margin = 3;
 
 Polygon::Polygon(QList<Vertex> verts) : vertices(verts)
 {
-    // create polygon
-    QList<QPoint> points;
-    for (const Vertex& v : verts)
-    {
-        points.append(static_cast<QPoint>(v));
-    }
-    m_polygon = QPolygon(points);
-
     // create edges
     for (int i = 0; i < vertices.count() - 1; i++)
     {
         edges.append(Edge(&(vertices[i]), &(vertices[i + 1])));
     }
     edges.append(Edge(&vertices.first(), &vertices.last()));
+
+    rebuild();
 }
 
 void Polygon::paint(QSharedPointer<QPainter> painter) const
@@ -58,4 +52,15 @@ Edge* Polygon::checkEdges(const QPoint& p)
         }
     }
     return nullptr;
+}
+
+void Polygon::rebuild()
+{
+    QVector<QPoint> points;
+    points.reserve(vertices.count());
+    for (const Vertex& v : vertices)
+    {
+        points.append(static_cast<QPoint>(v));
+    }
+    m_polygon = QPolygon(points);
 }

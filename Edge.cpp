@@ -34,6 +34,7 @@ bool operator==(const Edge& e1, const Edge& e2)
     return false;
 }
 
+// FIX IT - the distance is too big
 bool Edge::contains(const QPoint& p) const
 {
     int minX = m_first->X < m_second->X ? m_first->X : m_second->X;

@@ -12,11 +12,6 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
 
     SceneManager manager;
-    manager.painter->drawLine(QPoint(300, 300), QPoint(400, 400));
-
-    Vertex v(200, 200);
-    v.paint(manager.painter);
-
 
     QQmlApplicationEngine engine;
     engine.addImageProvider(QString("SceneManager"), &manager);
@@ -27,6 +22,11 @@ int main(int argc, char *argv[])
         &app, []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
     engine.loadFromModule("Polygon-Editor", "Main");
+
+    manager.addVertex(100, 100);
+    manager.addVertex(200, 100);
+    manager.addVertex(100, 200);
+    manager.addVertex(100, 100);
 
     return app.exec();
 }

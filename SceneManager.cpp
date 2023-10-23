@@ -65,12 +65,9 @@ void SceneManager::paint()
 
 void SceneManager::drawProjection(int x, int y)
 {
-    if (m_isBuilding)
-    {
-        paint();
-        drawLine(painter, lastPosition, QPoint(x, y), s_type);
-        emit imageChanged();
-    }
+    paint();
+    drawLine(painter, lastPosition, QPoint(x, y), s_type);
+    emit imageChanged();
 }
 
 void SceneManager::addVertex(int x, int y)
@@ -97,15 +94,22 @@ void SceneManager::addVertex(int x, int y)
 
 void SceneManager::stopBuilding(int x, int y)
 {
-    lastPosition = QPoint(x, y);
+    if (polyline.isEmpty()) { return; }
     m_isBuilding = false;
     polyline.clear();
+    paint();
+    emit imageChanged();
 }
 
 void SceneManager::checkObjects(int x, int y)
 {
+    if (polygons.isEmpty()) { return; }
+    currObject = Geometry::None;
+    currVertex = nullptr;
+    currEdge = nullptr;
+    currPolygon = nullptr;
+
     qDebug() << "Pressed: (" << x << "," << y << ")\n";
-    if (m_isBuilding) { return; }
 
     lastPosition = QPoint(x, y);
     m_isPressed = true;
@@ -115,6 +119,8 @@ void SceneManager::checkObjects(int x, int y)
     {
         if (p.contains(lastPosition))
         {
+            // always set current Polygon
+            currPolygon = &p;
             Vertex* v = p.checkVertices(lastPosition);
             if (v != nullptr)
             {
@@ -131,18 +137,49 @@ void SceneManager::checkObjects(int x, int y)
                 return;
             }
 
-            currPolygon = &p;
+            // but not always as current object
             currObject = Geometry::Polygon;
             return;
         }
     }
 }
 
-void SceneManager::todo(int x, int y)
+void SceneManager::moveObject(int x, int y)
 {
-    qDebug() << "Released: (" << x << "," << y << ")\n";
-    if (m_isBuilding) { return; }
+    qDebug() << "Move object: (" << x << "," << y << ")\n";
+
+    switch(currObject)
+    {
+        case Geometry::Polygon: break;
+        case Geometry::Edge:break;
+        case Geometry::Vertex:
+        {
+            currVertex->drag(x, y);
+            break;
+        }
+        case Geometry::None: return;
+    }
+
+    currPolygon->rebuild();
+    lastPosition = QPoint(x, y);
+    paint();
+    emit imageChanged();
+}
+
+void SceneManager::release(int x, int y)
+{
+    qDebug() << "Release: (" << x << "," << y << ")\n";
 
     lastPosition = QPoint(x, y);
     m_isPressed = false;
+}
+
+bool SceneManager::isBuilding() const
+{
+    return m_isBuilding;
+}
+
+bool SceneManager::isPressed() const
+{
+    return m_isPressed;
 }

@@ -9,6 +9,8 @@
 class SceneManager : public QQuickImageProvider
 {
     Q_OBJECT
+    Q_PROPERTY(bool isBuilding READ isBuilding NOTIFY isBuildingChanged)
+    Q_PROPERTY(bool isPressed READ isPressed NOTIFY isPressedChanged)
     public:
         static Algorithm s_type;
 
@@ -31,15 +33,23 @@ class SceneManager : public QQuickImageProvider
 
         void paint();
 
+        bool isBuilding() const;
+
+        bool isPressed() const;
+
     public slots:
         void drawProjection(int x, int y);
         void addVertex(int x, int y);
         void stopBuilding(int x, int y);
         void checkObjects(int x, int y);
-        void todo(int x, int y);
+        void moveObject(int x, int y);
+        void release(int x, int y);
 
     signals:
         void imageChanged();
+        void isBuildingChanged();
+        void isPressedChanged();
+
 
     private:
         const QColor m_background = QColor(255, 255, 255, 255);

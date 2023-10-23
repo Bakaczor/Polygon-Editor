@@ -47,19 +47,33 @@ ApplicationWindow {
                    id: mouseArea
                    anchors.fill: parent
                    hoverEnabled: true
+                   acceptedButtons: Qt.AllButtons
 
-                   onPressed: SceneManager.checkObjects(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
-                   onReleased: SceneManager.todo(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
-                   onDoubleClicked: {
-                       if (mouseArea.pressedButtons == Qt.LeftButton) {
-                           SceneManager.addVertex(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
+                   onPressed: {
+                       if (mouseArea.pressedButtons == Qt.RightButton && !SceneManager.isBuilding) {
+                           SceneManager.checkObjects(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
                        }
-                       // WHY IT DOESN"T WORK
-                       //if (mouseArea.pressedButtons == Qt.RightButton) {
-                       //    SceneManager.stopBuilding(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
-                       //}
                    }
-                   onPositionChanged: SceneManager.drawProjection(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
+                   onReleased: {
+                        if (SceneManager.isPressed) {
+                            SceneManager.release(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
+                        }
+                   }
+                   onDoubleClicked: {
+                        if (mouseArea.pressedButtons == Qt.LeftButton) {
+                           SceneManager.addVertex(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
+                        } else if (mouseArea.pressedButtons == Qt.RightButton && SceneManager.isBuilding) {
+                           SceneManager.stopBuilding(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
+                        }
+                   }
+                   onPositionChanged:
+                   {
+                       if (SceneManager.isBuilding) {
+                           SceneManager.drawProjection(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
+                        } else if (SceneManager.isPressed) {
+                            SceneManager.moveObject(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
+                        }
+                   }
                 }
             }
 
