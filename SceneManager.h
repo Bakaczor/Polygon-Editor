@@ -25,7 +25,7 @@ class SceneManager : public QQuickImageProvider
         Geometry currObject;
         Vertex* currVertex;
         Edge* currEdge;
-        Polygon* currPolygon;
+        int currPolIdx;
 
         SceneManager(QObject *parent = nullptr);
         ~SceneManager();
@@ -57,7 +57,7 @@ class SceneManager : public QQuickImageProvider
         bool m_isBuilding;
         bool m_isPressed;
 
-        QImage m_image;
+        QScopedPointer<QImage> m_image;
 };
 
 

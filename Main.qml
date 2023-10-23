@@ -77,6 +77,9 @@ ApplicationWindow {
                 }
             }
 
+            // dodawanie i usuwanie np. za pośrednictwem kółka od myszy (na krawędzi dodaj, na wierzchołku usuń)
+            // usuwanie wielokąta za pośrednictwem delete
+
             Rectangle {
                 width: 200
                 height: parent.height

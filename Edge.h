@@ -11,7 +11,7 @@ class Edge {
 
         Edge(Vertex* v1, Vertex* v2, int thic = 2);
 
-        //void drag(int x, int y);
+        void drag(int dx, int dy);
         void paint(QSharedPointer<QPainter> painter) const;
         bool contains(const QPoint& p) const;
         friend bool operator==(const Edge& e1, const Edge& e2);
@@ -20,9 +20,9 @@ class Edge {
         int m_A;
         int m_B;
         long m_C;
-        double m_length;
         int m_thicc;
         Vertex* m_first;
         Vertex* m_second;
+        Orientation m_orient;
 };
 

@@ -8,7 +8,6 @@ Algorithm SceneManager::s_type = Algorithm::Library;
 
 SceneManager::SceneManager(QObject *parent) :
     QQuickImageProvider(QQuickImageProvider::Image),
-    m_image(size, QImage::Format_ARGB32),
     m_isBuilding(false),
     m_isPressed(false),
     lastPosition(0, 0),
@@ -17,11 +16,12 @@ SceneManager::SceneManager(QObject *parent) :
     polygons(QList<Polygon>()),
     currVertex(nullptr),
     currEdge(nullptr),
-    currPolygon(nullptr),
+    currPolIdx(-1),
     currObject(Geometry::None)
 {
-    m_image.fill(m_background);
-    painter = QSharedPointer<QPainter>(new QPainter(&m_image));
+    m_image.reset(new QImage(size, QImage::Format_ARGB32));
+    m_image->fill(m_background);
+    painter = QSharedPointer<QPainter>(new QPainter(m_image.get()));
 }
 
 SceneManager::~SceneManager()
@@ -32,13 +32,13 @@ SceneManager::~SceneManager()
 
 QImage SceneManager::requestImage(const QString &id, QSize *size, const QSize &requestedSize)
 {
-    return m_image;
+    return *m_image.get();
 }
 
 void SceneManager::paint()
 {
     //refresh image
-    m_image.fill(m_background);
+    m_image->fill(m_background);
 
     // draw the polyline
     if (!polyline.empty())
@@ -107,7 +107,7 @@ void SceneManager::checkObjects(int x, int y)
     currObject = Geometry::None;
     currVertex = nullptr;
     currEdge = nullptr;
-    currPolygon = nullptr;
+    currPolIdx = -1;
 
     qDebug() << "Pressed: (" << x << "," << y << ")\n";
 
@@ -115,20 +115,21 @@ void SceneManager::checkObjects(int x, int y)
     m_isPressed = true;
 
     // check polygons - parallelize
-    for (Polygon& p : polygons)
+    for (int i = 0; i < polygons.count(); i++)
     {
-        if (p.contains(lastPosition))
-        {
-            // always set current Polygon
-            currPolygon = &p;
-            Vertex* v = p.checkVertices(lastPosition);
-            if (v != nullptr)
-            {
-                currVertex = v;
-                currObject = Geometry::Vertex;
-                return;
-            }
+        Polygon& p = polygons[i];
 
+        // check vertices - parallelize
+        Vertex* v = p.checkVertices(lastPosition);
+        if (v != nullptr)
+        {
+            currVertex = v;
+            currObject = Geometry::Vertex;
+            return;
+        }
+        else
+        {
+            // check edges - parallelize
             Edge* e = p.checkEdges(lastPosition);
             if (e != nullptr)
             {
@@ -136,10 +137,15 @@ void SceneManager::checkObjects(int x, int y)
                 currObject = Geometry::Edge;
                 return;
             }
-
-            // but not always as current object
-            currObject = Geometry::Polygon;
-            return;
+            else
+            {
+                if (p.contains(lastPosition))
+                {
+                    currPolIdx = i;
+                    currObject = Geometry::Polygon;
+                    return;
+                }
+            }
         }
     }
 }
@@ -148,10 +154,21 @@ void SceneManager::moveObject(int x, int y)
 {
     qDebug() << "Move object: (" << x << "," << y << ")\n";
 
+    int dx = x - lastPosition.x();
+    int dy = y - lastPosition.y();
+
     switch(currObject)
     {
-        case Geometry::Polygon: break;
-        case Geometry::Edge:break;
+        case Geometry::Polygon:
+        {
+        polygons[currPolIdx].drag(dx, dy);
+            break;
+        }
+        case Geometry::Edge:
+        {
+            currEdge->drag(dx, dy);
+            break;
+        }
         case Geometry::Vertex:
         {
             currVertex->drag(x, y);
@@ -160,7 +177,6 @@ void SceneManager::moveObject(int x, int y)
         case Geometry::None: return;
     }
 
-    currPolygon->rebuild();
     lastPosition = QPoint(x, y);
     paint();
     emit imageChanged();

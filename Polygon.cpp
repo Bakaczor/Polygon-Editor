@@ -1,7 +1,5 @@
 #include "Polygon.h"
 
-int Polygon::s_margin = 3;
-
 Polygon::Polygon(QList<Vertex> verts) : vertices(verts)
 {
     // create edges
@@ -10,12 +8,21 @@ Polygon::Polygon(QList<Vertex> verts) : vertices(verts)
         edges.append(Edge(&(vertices[i]), &(vertices[i + 1])));
     }
     edges.append(Edge(&vertices.first(), &vertices.last()));
+}
 
-    rebuild();
+void Polygon::drag(int dx, int dy)
+{
+    // paralellize
+    for (Vertex& v : vertices)
+    {
+        v.X += dx;
+        v.Y += dy;
+    }
 }
 
 void Polygon::paint(QSharedPointer<QPainter> painter) const
 {
+    // paralellize
     for (int i = 0; i < vertices.count(); i++)
     {
         vertices.at(i).paint(painter);
@@ -25,7 +32,13 @@ void Polygon::paint(QSharedPointer<QPainter> painter) const
 
 bool Polygon::contains(const QPoint& p) const
 {
-    return m_polygon.containsPoint(p, Qt::OddEvenFill);
+    QVector<QPoint> points;
+    points.reserve(vertices.count());
+    for (const Vertex& v : vertices)
+    {
+        points.append(static_cast<QPoint>(v));
+    }
+    return QPolygon(points).containsPoint(p, Qt::OddEvenFill);
 }
 
 Vertex* Polygon::checkVertices(const QPoint& p)
@@ -52,15 +65,4 @@ Edge* Polygon::checkEdges(const QPoint& p)
         }
     }
     return nullptr;
-}
-
-void Polygon::rebuild()
-{
-    QVector<QPoint> points;
-    points.reserve(vertices.count());
-    for (const Vertex& v : vertices)
-    {
-        points.append(static_cast<QPoint>(v));
-    }
-    m_polygon = QPolygon(points);
 }

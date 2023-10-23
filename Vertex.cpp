@@ -1,6 +1,6 @@
 #include "Vertex.h"
 
-int Vertex::s_margin = 10;
+int Vertex::s_margin = 7;
 
 Vertex::Vertex(int x, int y, int thicc): X(x), Y(y), m_thicc(thicc) {}
 

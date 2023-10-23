@@ -1,19 +1,24 @@
 #include <QtMath>
 
 #include "Edge.h"
-#include "qdebug.h"
 
-int Edge::s_margin = 7;
+int Edge::s_margin = 5;
 Algorithm Edge::s_type = Algorithm::Library;
 
-// NOTE: Y coordinates must be sometimes negated to have mathematical consistency
 
-Edge::Edge(Vertex* v1, Vertex* v2, int thic) : m_first(v1), m_second(v2), m_thicc(thic)
+Edge::Edge(Vertex* v1, Vertex* v2, int thic) : m_first(v1), m_second(v2), m_thicc(thic), m_orient(Orientation::None)
 {
     m_A = v1->Y - v2->Y;
     m_B = v2->X - v1->X;
     m_C = v1->X * v2->Y - v2->X * v1->Y;
-    m_length = sqrt(m_A * m_A + m_B * m_B);
+}
+
+void Edge::drag(int dx, int dy)
+{
+    m_first->X += dx;
+    m_first->Y += dy;
+    m_second->X += dx;
+    m_second->Y += dy;
 }
 
 void Edge::paint(QSharedPointer<QPainter> painter) const
@@ -34,19 +39,33 @@ bool operator==(const Edge& e1, const Edge& e2)
     return false;
 }
 
-// FIX IT - the distance is too big
 bool Edge::contains(const QPoint& p) const
 {
-    int minX = m_first->X < m_second->X ? m_first->X : m_second->X;
-    int maxX = minX == m_second->X ? m_first->X : m_second->X;
-    if (p.x() < minX && qFabs(p.x() - minX) > s_margin) { return false; }
-    else if (p.x() > maxX && qFabs(p.x() - maxX) > s_margin) { return false; }
+    int A = p.x() - m_first->X;
+    int B = p.y() - m_first->Y;
+    int C = m_second->X - m_first->X;
+    int D = m_second->Y - m_first->Y;
+    long dot = A * C + B * D;
+    long lensq = C * C  + D * D;
 
-    int minY = m_first->Y < m_second->Y ? m_first->Y : m_second->Y;
-    int maxY = minY == m_second->Y ? m_first->Y : m_second->Y;
-    if (p.y() < minY && qFabs(p.y() - minY) > s_margin) { return false; }
-    else if (p.y() > maxY && qFabs(p.y() - maxY) > s_margin) { return false; }
+    int xx, yy;
+    if (dot <= 0)
+    {
+        xx = m_first->X;
+        yy = m_first->Y;
+    }
+    else if (dot >= lensq)
+    {
+        xx = m_second->X;
+        yy = m_second->Y;
+    }
+    else
+    {
+        xx = m_first->X + C * dot / lensq;
+        yy = m_first->Y + D * dot / lensq;
+    }
+    int dx = p.x() - xx;
+    int dy = p.y() - yy;
 
-    qDebug() << "Distance: " << qFabs(m_A * p.x() - m_B * p.y() + m_C) / m_length << "\n";
-    return qFabs(m_A * p.x() - m_B * p.y() + m_C) / m_length < s_margin;
+    return dx * dx + dy * dy < s_margin * s_margin;
 }

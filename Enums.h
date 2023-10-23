@@ -8,7 +8,7 @@ enum class Algorithm
 
 enum class Orientation
 {
-    Horizontal, Vertical
+    Horizontal, Vertical, None
 };
 
 enum class Geometry
