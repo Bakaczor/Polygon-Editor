@@ -101,6 +101,8 @@ void SceneManager::stopBuilding(int x, int y)
     emit imageChanged();
 }
 
+// dodać odzielne handlery, przerobić pressed na dragging dla czytelności
+
 void SceneManager::checkObjects(int x, int y)
 {
     if (polygons.isEmpty()) { return; }
