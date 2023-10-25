@@ -9,7 +9,7 @@ class SceneManager : public QQuickImageProvider
 {
     Q_OBJECT
     Q_PROPERTY(bool isBuilding READ isBuilding NOTIFY isBuildingChanged)
-    Q_PROPERTY(bool isPressed READ isPressed NOTIFY isPressedChanged)
+    Q_PROPERTY(bool isDragging READ isDragging NOTIFY isDraggingChanged)
     public:
         static Algorithm s_type;
 
@@ -22,8 +22,8 @@ class SceneManager : public QQuickImageProvider
         QList<Polygon> polygons;
 
         Geometry currObject;
-        Vertex* currVertex;
-        Edge* currEdge;
+        int currVerIdx;
+        int currEdgIdx;
         int currPolIdx;
 
         SceneManager(QObject *parent = nullptr);
@@ -34,30 +34,31 @@ class SceneManager : public QQuickImageProvider
 
         bool isBuilding() const;
 
-        bool isPressed() const;
+        bool isDragging() const;
 
     public slots:
         void drawProjection(int x, int y);
         void addVertex(int x, int y);
         void stopBuilding(int x, int y);
         void checkObjects(int x, int y);
+        void startDragging(int x, int y);
         void moveObject(int x, int y);
-        void release(int x, int y);
-        //void insertVertex();
-        void removeVertex();
+        void stopDragging(int x, int y);
+        void insertVertex(int x, int y);
+        void removeSelected();
         void unselectObjects();
 
     signals:
         void imageChanged();
         void isBuildingChanged();
-        void isPressedChanged();
+        void isDraggingChanged();
 
 
     private:
         const QColor m_background = QColor(255, 255, 255, 255);
 
         bool m_isBuilding;
-        bool m_isPressed;
+        bool m_isDragging;
 
         QScopedPointer<QImage> m_image;
 };

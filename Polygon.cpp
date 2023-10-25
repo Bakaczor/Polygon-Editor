@@ -1,6 +1,6 @@
 #include "Polygon.h"
 
-Polygon::Polygon(QList<Vertex> verts) : isSelected(false)
+Polygon::Polygon(QList<Vertex> verts)
 {
     for (const Vertex v : verts)
     {
@@ -11,7 +11,7 @@ Polygon::Polygon(QList<Vertex> verts) : isSelected(false)
     {
         edges.append(Edge(vertices.at(i).get(), vertices.at(i + 1).get()));
     }
-    edges.append(Edge(vertices.first().get(), vertices.last().get()));
+    edges.append(Edge(vertices.last().get(), vertices.first().get()));
 }
 
 void Polygon::drag(int dx, int dy)
@@ -27,10 +27,13 @@ void Polygon::drag(int dx, int dy)
 void Polygon::paint(QSharedPointer<QPainter> painter) const
 {
     // paralellize
-    for (int i = 0; i < vertices.count(); i++)
+    for (const Edge& e : edges)
     {
-        vertices.at(i)->paint(painter);
-        edges.at(i).paint(painter);
+        e.paint(painter);
+    }
+    for (const auto& pv : vertices)
+    {
+        pv->paint(painter);
     }
 }
 
@@ -53,15 +56,44 @@ void Polygon::unselect()
     }
 }
 
-bool Polygon::removeVertex(Vertex* v)
+void Polygon::insertVertex(int x, int y, int eIdx)
+{
+    auto pv = QSharedPointer<Vertex>(new Vertex(x, y));
+    int pvIdx = eIdx;
+    int nvIdx = eIdx == vertices.count() - 1 ? 0 : eIdx + 1;
+
+    Edge pe(vertices.at(pvIdx).get(), pv.get());
+    Edge ne(pv.get(), vertices.at(nvIdx).get());
+
+    if (nvIdx)
+    {
+        vertices.insert(nvIdx, pv);
+    }
+    else
+    {
+        vertices.append(pv);
+    }
+    edges.removeAt(eIdx);
+    edges.insert(eIdx, pe);
+    edges.insert(eIdx + 1, ne);
+}
+
+bool Polygon::removeVertex(int vIdx)
 {
     if (vertices.count() <= 3) { return false; }
-    int i = vertices.indexOf(QSharedPointer<Vertex>(new Vertex(v->X, v->Y)));
-    int j = i == 0 ? edges.count() - 1 : i - 1;
-    int k = i == vertices.count() - 1 ? 0 : i + 1;
-    edges[j].second = vertices.at(k).data();
-    //vertices.removeAt(i);
-    //edges.removeAt(i);
+
+    int peIdx = vIdx == 0 ? edges.count() - 1 : vIdx - 1;
+    int nvIdx = vIdx == vertices.count() - 1 ? 0 : vIdx + 1;
+    if (*vertices.at(vIdx) == *edges.at(peIdx).first)
+    {
+        edges[peIdx].first = vertices.at(nvIdx).data();
+    }
+    else
+    {
+        edges[peIdx].second = vertices.at(nvIdx).data();
+    }
+    vertices.removeAt(vIdx);
+    edges.removeAt(vIdx);
     return true;
 }
 
@@ -76,28 +108,22 @@ bool Polygon::contains(const QPoint& p) const
     return QPolygon(points).containsPoint(p, Qt::OddEvenFill);
 }
 
-Vertex* Polygon::checkVertices(const QPoint& p)
+int Polygon::checkVertices(const QPoint& p)
 {
     // paralellize
-    for (auto& pv : vertices)
+    for (int i = 0; i < vertices.count(); i++)
     {
-        if (Vertex(p.x(), p.y()) == *pv)
-        {
-            return pv.get();
-        }
+        if (*vertices.at(i) == Vertex(p.x(), p.y())) { return i; }
     }
-    return nullptr;
+    return -1;
 }
 
-Edge* Polygon::checkEdges(const QPoint& p)
+int Polygon::checkEdges(const QPoint& p)
 {
     // paralellize
-    for (Edge& e : edges)
+    for (int i = 0; i < edges.count(); i++)
     {
-        if (e.contains(Vertex(p.x(), p.y())))
-        {
-            return &e;
-        }
+        if (edges.at(i).contains(Vertex(p.x(), p.y()))) { return i; }
     }
-    return nullptr;
+    return -1;
 }

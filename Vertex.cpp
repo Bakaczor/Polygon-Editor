@@ -2,7 +2,7 @@
 
 const int Vertex::s_margin = 7;
 
-Vertex::Vertex(int x, int y): X(x), Y(y), thicc(5), color(QColor(0, 0, 255, 255)) {}
+Vertex::Vertex(int x, int y): X(x), Y(y), thicc(6), color(QColor(0, 0, 255, 255)) {}
 
 void Vertex::drag(int x, int y)
 {
@@ -21,13 +21,13 @@ void Vertex::paint(QSharedPointer<QPainter> painter) const
 
 void Vertex::select()
 {
-    thicc = 7;
+    thicc = 8;
     color = QColor(255, 0, 0, 255);
 }
 
 void Vertex::unselect()
 {
-    thicc = 5;
+    thicc = 6;
     color = QColor(0, 0, 255, 255);
 }
 

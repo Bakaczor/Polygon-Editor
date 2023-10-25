@@ -46,7 +46,7 @@ ApplicationWindow {
 
                 Keys.onPressed: (event) => {
                     if (event.key === Qt.Key_Delete) {
-                        SceneManager.removeVertex();
+                        SceneManager.removeSelected();
                     }
                 }
 
@@ -57,13 +57,18 @@ ApplicationWindow {
                    acceptedButtons: Qt.AllButtons
 
                    onPressed: {
-                       if (mouseArea.pressedButtons == Qt.RightButton && !SceneManager.isBuilding) {
-                           SceneManager.checkObjects(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
-                       }
+                        if (!SceneManager.isBuilding) {
+                            SceneManager.checkObjects(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
+                            if (mouseArea.pressedButtons == Qt.RightButton) {
+                               SceneManager.startDragging(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
+                            } else if (mouseArea.pressedButtons == Qt.MiddleButton) {
+                               SceneManager.insertVertex(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
+                            }
+                        }
                    }
                    onReleased: {
-                        if (SceneManager.isPressed) {
-                            SceneManager.release(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
+                        if (SceneManager.isDragging) {
+                            SceneManager.stopDragging(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
                         }
                    }
                    onDoubleClicked: {
@@ -77,7 +82,7 @@ ApplicationWindow {
                    {
                        if (SceneManager.isBuilding) {
                            SceneManager.drawProjection(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
-                        } else if (SceneManager.isPressed) {
+                        } else if (SceneManager.isDragging) {
                             SceneManager.moveObject(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
                         }
                    }

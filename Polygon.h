@@ -7,7 +7,6 @@ class Polygon
     public:
         QList<QSharedPointer<Vertex>> vertices;
         QList<Edge> edges;
-        bool isSelected;
 
         Polygon(QList<Vertex> verts);
 
@@ -15,9 +14,9 @@ class Polygon
         void paint(QSharedPointer<QPainter> painter) const;
         void select();
         void unselect();
-        //void addVertex(Vertex* v);
-        bool removeVertex(Vertex* v);
+        void insertVertex(int x, int y, int eIdx);
+        bool removeVertex(int vIdx);
         bool contains(const QPoint& p) const;
-        Vertex* checkVertices(const QPoint& p);
-        Edge* checkEdges(const QPoint& p);
+        int checkVertices(const QPoint& p);
+        int checkEdges(const QPoint& p);
 };

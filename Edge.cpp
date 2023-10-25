@@ -7,7 +7,7 @@ Algorithm Edge::s_type = Algorithm::Library;
 
 
 Edge::Edge(Vertex* v1, Vertex* v2) : first(v1), second(v2), orient(Orientation::None),
-    thicc(3), color(QColor(0, 0, 0, 255))
+    thicc(2), color(QColor(0, 0, 0, 255))
 {
     m_A = v1->Y - v2->Y;
     m_B = v2->X - v1->X;
@@ -35,7 +35,7 @@ void Edge::select()
 
 void Edge::unselect()
 {
-    thicc = 3;
+    thicc = 2;
     color = QColor(0, 0, 0, 255);
 }
 
