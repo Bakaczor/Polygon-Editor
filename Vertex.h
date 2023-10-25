@@ -4,18 +4,19 @@
 class Vertex
 {
     public:
-        static int s_margin;
+        const static int s_margin;
+        QColor color;
+        int thicc;
         int X;
         int Y;
 
-        Vertex(int x, int y, int thic = 5);
+        Vertex(int x, int y);
 
         void drag(int x, int y);
         void paint(QSharedPointer<QPainter> painter) const;
+        void select();
+        void unselect();
 
         operator QPoint() const;
         friend bool operator==(const Vertex& v1, const Vertex& v2);
-
-    private:
-        int m_thicc;
 };

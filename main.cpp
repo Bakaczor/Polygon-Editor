@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
 
     manager.addVertex(100, 100);
     manager.addVertex(200, 100);
+    manager.addVertex(200, 200);
     manager.addVertex(100, 200);
     manager.addVertex(100, 100);
 

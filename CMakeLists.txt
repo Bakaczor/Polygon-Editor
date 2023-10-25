@@ -24,6 +24,9 @@ qt_add_qml_module(appPolygon-Editor
     SOURCES Functions.h
     SOURCES Functions.cpp
     SOURCES Enums.h
+    SOURCES
+    SOURCES
+    SOURCES
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

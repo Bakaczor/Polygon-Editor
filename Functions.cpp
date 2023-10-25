@@ -1,9 +1,11 @@
 #include "Functions.h"
 
-void drawLine(QSharedPointer<QPainter> painter, const QPoint& p1, const QPoint& p2, enum Algorithm type)
+void drawLine(QSharedPointer<QPainter> painter, const QPoint& p1, const QPoint& p2,
+              const Algorithm& type, const int& thicc, const QColor& color)
 {
     QPen p;
-    p.setWidth(2);
+    p.setWidth(thicc);
+    p.setColor(color);
     painter->setPen(p);
     
     if (type == Algorithm::Library)

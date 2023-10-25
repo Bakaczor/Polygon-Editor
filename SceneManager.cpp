@@ -48,7 +48,8 @@ void SceneManager::paint()
         {
             const Vertex& v1 = polyline.at(i - 1);
             const Vertex& v2 = polyline.at(i);
-            drawLine(painter, QPoint(v1.X, v1.Y), QPoint(v2.X, v2.Y), s_type);
+            drawLine(painter, QPoint(v1.X, v1.Y), QPoint(v2.X, v2.Y),
+                     s_type, 3, QColor(0, 0, 0, 255));
             v2.paint(painter);
         }
     }
@@ -66,7 +67,8 @@ void SceneManager::paint()
 void SceneManager::drawProjection(int x, int y)
 {
     paint();
-    drawLine(painter, lastPosition, QPoint(x, y), s_type);
+    drawLine(painter, lastPosition, QPoint(x, y),
+             s_type, 3, QColor(0, 0, 0, 255));
     emit imageChanged();
 }
 
@@ -106,10 +108,7 @@ void SceneManager::stopBuilding(int x, int y)
 void SceneManager::checkObjects(int x, int y)
 {
     if (polygons.isEmpty()) { return; }
-    currObject = Geometry::None;
-    currVertex = nullptr;
-    currEdge = nullptr;
-    currPolIdx = -1;
+    unselectObjects();
 
     qDebug() << "Pressed: (" << x << "," << y << ")\n";
 
@@ -125,9 +124,11 @@ void SceneManager::checkObjects(int x, int y)
         Vertex* v = p.checkVertices(lastPosition);
         if (v != nullptr)
         {
+            currPolIdx = i;
+            v->select();
             currVertex = v;
             currObject = Geometry::Vertex;
-            return;
+            break;
         }
         else
         {
@@ -135,21 +136,28 @@ void SceneManager::checkObjects(int x, int y)
             Edge* e = p.checkEdges(lastPosition);
             if (e != nullptr)
             {
+                currPolIdx = i;
+                e->select();
                 currEdge = e;
                 currObject = Geometry::Edge;
-                return;
+                break;
             }
             else
             {
                 if (p.contains(lastPosition))
                 {
                     currPolIdx = i;
+                    polygons[currPolIdx].select();
+                    polygons[currPolIdx].isSelected = true;
                     currObject = Geometry::Polygon;
-                    return;
+                    break;
                 }
             }
         }
     }
+
+    paint();
+    emit imageChanged();
 }
 
 void SceneManager::moveObject(int x, int y)
@@ -190,6 +198,36 @@ void SceneManager::release(int x, int y)
 
     lastPosition = QPoint(x, y);
     m_isPressed = false;
+}
+
+void SceneManager::removeVertex()
+{
+    if (currPolIdx == -1 || currVertex == nullptr) { return; }
+    polygons[currPolIdx].removeVertex(currVertex);
+    unselectObjects();
+    paint();
+    emit imageChanged();
+}
+
+void SceneManager::unselectObjects()
+{
+    currObject = Geometry::None;
+    if (currVertex)
+    {
+        currVertex->unselect();
+        currVertex = nullptr;
+    }
+    if (currEdge)
+    {
+        currEdge->unselect();
+        currEdge = nullptr;
+    }
+    if (currPolIdx != -1 && polygons[currPolIdx].isSelected)
+    {
+        polygons[currPolIdx].isSelected = false;
+        polygons[currPolIdx].unselect();
+        currPolIdx = -1;
+    }
 }
 
 bool SceneManager::isBuilding() const

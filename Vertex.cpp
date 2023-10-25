@@ -1,8 +1,8 @@
 #include "Vertex.h"
 
-int Vertex::s_margin = 7;
+const int Vertex::s_margin = 7;
 
-Vertex::Vertex(int x, int y, int thicc): X(x), Y(y), m_thicc(thicc) {}
+Vertex::Vertex(int x, int y): X(x), Y(y), thicc(5), color(QColor(0, 0, 255, 255)) {}
 
 void Vertex::drag(int x, int y)
 {
@@ -13,9 +13,22 @@ void Vertex::drag(int x, int y)
 void Vertex::paint(QSharedPointer<QPainter> painter) const
 {
     QPen p;
-    p.setWidth(m_thicc);
+    p.setWidth(thicc);
+    p.setColor(color);
     painter->setPen(p);
     painter->drawPoint(QPoint(X, Y));
+}
+
+void Vertex::select()
+{
+    thicc = 7;
+    color = QColor(255, 0, 0, 255);
+}
+
+void Vertex::unselect()
+{
+    thicc = 5;
+    color = QColor(0, 0, 255, 255);
 }
 
 Vertex::operator QPoint() const

@@ -36,11 +36,18 @@ ApplicationWindow {
                 height: parent.height
                 source: "image://SceneManager/image"
                 cache: false
+                focus: true
 
                 function reload() {
                     var oldSource = source;
                     source = "";
                     source = oldSource;
+                }
+
+                Keys.onPressed: (event) => {
+                    if (event.key === Qt.Key_Delete) {
+                        SceneManager.removeVertex();
+                    }
                 }
 
                MouseArea {

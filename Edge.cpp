@@ -2,11 +2,12 @@
 
 #include "Edge.h"
 
-int Edge::s_margin = 5;
+const int Edge::s_margin = 5;
 Algorithm Edge::s_type = Algorithm::Library;
 
 
-Edge::Edge(Vertex* v1, Vertex* v2, int thic) : m_first(v1), m_second(v2), m_thicc(thic), m_orient(Orientation::None)
+Edge::Edge(Vertex* v1, Vertex* v2) : first(v1), second(v2), orient(Orientation::None),
+    thicc(3), color(QColor(0, 0, 0, 255))
 {
     m_A = v1->Y - v2->Y;
     m_B = v2->X - v1->X;
@@ -15,54 +16,66 @@ Edge::Edge(Vertex* v1, Vertex* v2, int thic) : m_first(v1), m_second(v2), m_thic
 
 void Edge::drag(int dx, int dy)
 {
-    m_first->X += dx;
-    m_first->Y += dy;
-    m_second->X += dx;
-    m_second->Y += dy;
+    first->X += dx;
+    first->Y += dy;
+    second->X += dx;
+    second->Y += dy;
 }
 
 void Edge::paint(QSharedPointer<QPainter> painter) const
 {
-    drawLine(painter, QPoint(m_first->X, m_first->Y), QPoint(m_second->X, m_second->Y), s_type);
+    drawLine(painter, (QPoint)*first, (QPoint)*second, s_type, thicc, color);
+}
+
+void Edge::select()
+{
+    thicc = 4;
+    color = QColor(255, 0, 0, 255);
+}
+
+void Edge::unselect()
+{
+    thicc = 3;
+    color = QColor(0, 0, 0, 255);
 }
 
 bool operator==(const Edge& e1, const Edge& e2)
 {
-    if (e1.m_first == e2.m_first)
+    if (e1.first == e2.first)
     {
-        return e1.m_second == e2.m_second;
+        return e1.second == e2.second;
     }
-    else if (e1.m_first == e2.m_second)
+    else if (e1.first == e2.second)
     {
-        return e1.m_second == e2.m_first;
+        return e1.second == e2.first;
     }
     return false;
 }
 
 bool Edge::contains(const QPoint& p) const
 {
-    int A = p.x() - m_first->X;
-    int B = p.y() - m_first->Y;
-    int C = m_second->X - m_first->X;
-    int D = m_second->Y - m_first->Y;
+    int A = p.x() - first->X;
+    int B = p.y() - first->Y;
+    int C = second->X - first->X;
+    int D = second->Y - first->Y;
     long dot = A * C + B * D;
     long lensq = C * C  + D * D;
 
     int xx, yy;
     if (dot <= 0)
     {
-        xx = m_first->X;
-        yy = m_first->Y;
+        xx = first->X;
+        yy = first->Y;
     }
     else if (dot >= lensq)
     {
-        xx = m_second->X;
-        yy = m_second->Y;
+        xx = second->X;
+        yy = second->Y;
     }
     else
     {
-        xx = m_first->X + C * dot / lensq;
-        yy = m_first->Y + D * dot / lensq;
+        xx = first->X + C * dot / lensq;
+        yy = first->Y + D * dot / lensq;
     }
     int dx = p.x() - xx;
     int dy = p.y() - yy;

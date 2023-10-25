@@ -2,7 +2,6 @@
 #include <QPainter>
 #include <QSize>
 #include <QQuickImageProvider>
-#include <QSharedPointer>
 
 #include "Polygon.h"
 
@@ -44,6 +43,9 @@ class SceneManager : public QQuickImageProvider
         void checkObjects(int x, int y);
         void moveObject(int x, int y);
         void release(int x, int y);
+        //void insertVertex();
+        void removeVertex();
+        void unselectObjects();
 
     signals:
         void imageChanged();
