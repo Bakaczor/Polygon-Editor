@@ -6,11 +6,19 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Quick)
 find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(Qt6 REQUIRED COMPONENTS Concurrent)
 
 qt_standard_project_setup(REQUIRES 6.5)
 
 qt_add_executable(appPolygon-Editor
     main.cpp
+)
+
+qt_add_resources(appPolygon-Editor "Images"
+    PREFIX "/"
+    FILES
+        v.png
+        h.png
 )
 
 qt_add_qml_module(appPolygon-Editor
@@ -27,6 +35,11 @@ qt_add_qml_module(appPolygon-Editor
     SOURCES
     SOURCES
     SOURCES
+    RESOURCES
+    SOURCES Icon.h
+    SOURCES Icon.cpp
+    SOURCES ImageProvider.h
+    SOURCES ImageProvider.cpp
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
@@ -46,6 +59,10 @@ target_link_libraries(appPolygon-Editor
 
 target_link_libraries(appPolygon-Editor
     PRIVATE Qt6::Core
+)
+
+target_link_libraries(appPolygon-Editor
+    PRIVATE Qt6::Concurrent
 )
 
 include(GNUInstallDirs)

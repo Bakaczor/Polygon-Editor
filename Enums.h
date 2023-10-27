@@ -1,14 +1,20 @@
-#ifndef ENUMS
-#define ENUMS
+#ifndef ENUMS_H
+#define ENUMS_H
 
-enum class Algorithm
-{
-    Library, Bresenham
+#include <QObject>
+
+class Algorithm : public QObject {
+    Q_OBJECT
+    public:
+        enum class Enum { Library, Bresenham };
+        Q_ENUM(Enum)
 };
 
-enum class Orientation
-{
-    Horizontal, Vertical, None
+class Orientation : public QObject {
+    Q_OBJECT
+    public:
+        enum class Enum { Horizontal, Vertical, None };
+        Q_ENUM(Enum)
 };
 
 enum class Geometry

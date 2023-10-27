@@ -1,11 +1,15 @@
+#include <QtConcurrent/QtConcurrent>
+
 #include "Polygon.h"
 
 Polygon::Polygon(QList<Vertex> verts)
 {
+    // add vertices
     for (const Vertex v : verts)
     {
         vertices.append(QSharedPointer<Vertex>(new Vertex(v)));
     }
+
     // create edges
     for (int i = 0; i < vertices.count() - 1; i++)
     {
@@ -16,20 +20,17 @@ Polygon::Polygon(QList<Vertex> verts)
 
 void Polygon::drag(int dx, int dy)
 {
-    // paralellize
-    for (auto& v : vertices)
-    {
-        v->X += dx;
-        v->Y += dy;
-    }
+    QtConcurrent::blockingMap(vertices, [&dx, &dy](auto& pv) {
+        pv->X += dx;
+        pv->Y += dy;
+    });
 }
 
-void Polygon::paint(QSharedPointer<QPainter> painter) const
+void Polygon::paint(QSharedPointer<QPainter> painter, const Algorithm::Enum& type) const
 {
-    // paralellize
     for (const Edge& e : edges)
     {
-        e.paint(painter);
+        e.paint(painter, type);
     }
     for (const auto& pv : vertices)
     {
@@ -37,23 +38,26 @@ void Polygon::paint(QSharedPointer<QPainter> painter) const
     }
 }
 
-// paralellize
 void Polygon::select()
 {
-    for (int i = 0; i < vertices.count(); i++)
-    {
-        vertices[i]->select();
-        edges[i].select();
-    }
+    QtConcurrent::map(vertices, [](auto& pv) {
+        pv->select();
+    });
+
+    QtConcurrent::blockingMap(edges, [](Edge& e) {
+        e.select();
+    });
 }
 
 void Polygon::unselect()
 {
-    for (int i = 0; i < vertices.count(); i++)
-    {
-        vertices[i]->unselect();
-        edges[i].unselect();
-    }
+    QtConcurrent::map(vertices, [](auto& pv) {
+        pv->unselect();
+    });
+
+    QtConcurrent::blockingMap(edges, [](Edge& e) {
+        e.unselect();
+    });
 }
 
 void Polygon::insertVertex(int x, int y, int eIdx)
@@ -84,6 +88,7 @@ bool Polygon::removeVertex(int vIdx)
 
     int peIdx = vIdx == 0 ? edges.count() - 1 : vIdx - 1;
     int nvIdx = vIdx == vertices.count() - 1 ? 0 : vIdx + 1;
+    edges[peIdx].setOrientation(Orientation::Enum::None);
     if (*vertices.at(vIdx) == *edges.at(peIdx).first)
     {
         edges[peIdx].first = vertices.at(nvIdx).data();
@@ -108,9 +113,8 @@ bool Polygon::contains(const QPoint& p) const
     return QPolygon(points).containsPoint(p, Qt::OddEvenFill);
 }
 
-int Polygon::checkVertices(const QPoint& p)
+int Polygon::checkVertices(const QPoint& p) const
 {
-    // paralellize
     for (int i = 0; i < vertices.count(); i++)
     {
         if (*vertices.at(i) == Vertex(p.x(), p.y())) { return i; }
@@ -118,12 +122,84 @@ int Polygon::checkVertices(const QPoint& p)
     return -1;
 }
 
-int Polygon::checkEdges(const QPoint& p)
+int Polygon::checkEdges(const QPoint& p) const
 {
-    // paralellize
-    for (int i = 0; i < edges.count(); i++)
+    QVector<bool> result(edges.count(), false);
+    QtConcurrent::blockingMap(edges, [this, &result, &p](const Edge& e) {
+        std::ptrdiff_t i = std::distance(&edges.at(0), &e);
+        result[i] = e.contains(p);
+    });
+
+    for (int i = 0; i < result.count(); i++)
     {
-        if (edges.at(i).contains(Vertex(p.x(), p.y()))) { return i; }
+        if (result.at(i)) { return i; }
     }
     return -1;
+}
+
+void Polygon::dragVertex(int x, int y, int currVerIdx)
+{
+    int peIdx = currVerIdx == 0 ? edges.count() - 1 : currVerIdx - 1;
+    int pvIdx = currVerIdx == 0 ? vertices.count() - 1 : currVerIdx - 1;
+
+    if (edges.at(peIdx).getOrientation() == Orientation::Enum::Horizontal)
+    {
+        vertices[pvIdx]->drag(vertices.at(pvIdx)->X, y);
+    }
+    else if (edges.at(peIdx).getOrientation() == Orientation::Enum::Vertical)
+    {
+        vertices[pvIdx]->drag(x, vertices.at(pvIdx)->Y);
+    }
+
+    int neIdx = currVerIdx;
+    int nvIdx = currVerIdx == vertices.count() - 1 ? 0 : currVerIdx + 1;
+
+    if (edges.at(neIdx).getOrientation() == Orientation::Enum::Horizontal)
+    {
+        vertices[nvIdx]->drag(vertices.at(nvIdx)->X, y);
+    }
+    else if (edges.at(neIdx).getOrientation() == Orientation::Enum::Vertical)
+    {
+        vertices[nvIdx]->drag(x, vertices.at(nvIdx)->Y);
+    }
+
+    vertices[currVerIdx]->drag(x, y);
+}
+
+void Polygon::dragEdge(int dx, int dy, int currEdgIdx)
+{
+    int peIdx = currEdgIdx == 0 ? edges.count() - 1 : currEdgIdx - 1;
+    int neIdx = currEdgIdx == edges.count() - 1 ? 0 : currEdgIdx + 1;
+
+    // right triangle case
+    if (edges.count() == 3 && edges.at(peIdx).getOrientation() != Orientation::Enum::None && edges.at(neIdx).getOrientation() != Orientation::Enum::None)
+    {
+        this->drag(dx, dy);
+        return;
+    }
+    edges[currEdgIdx].drag(dx, dy);
+
+    int pvIdx = currEdgIdx == 0 ? vertices.count() - 1 : currEdgIdx - 1;
+    int cpvIdx = currEdgIdx;
+
+    if (edges.at(peIdx).getOrientation() == Orientation::Enum::Horizontal)
+    {
+        vertices[pvIdx]->drag(vertices.at(pvIdx)->X, vertices.at(cpvIdx)->Y);
+    }
+    else if (edges.at(peIdx).getOrientation() == Orientation::Enum::Vertical)
+    {
+        vertices[pvIdx]->drag(vertices.at(cpvIdx)->X, vertices.at(pvIdx)->Y);
+    }
+
+    int nvIdx = (currEdgIdx + 2) % vertices.count();
+    int cnvIdx = currEdgIdx == vertices.count() - 1 ? 0 : currEdgIdx + 1;
+
+    if (edges.at(neIdx).getOrientation() == Orientation::Enum::Horizontal)
+    {
+        vertices[nvIdx]->drag(vertices.at(nvIdx)->X, vertices.at(cnvIdx)->Y);
+    }
+    else if (edges.at(neIdx).getOrientation() == Orientation::Enum::Vertical)
+    {
+        vertices[nvIdx]->drag(vertices.at(cnvIdx)->X, vertices.at(nvIdx)->Y);
+    }
 }

@@ -2,9 +2,11 @@ import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
 
+import com.algorithm.enum 1.0
+import com.orientation.enum 1.0
+
 ApplicationWindow {
     id: main_window
-
     visible: true
     minimumWidth: 800
     maximumWidth: 800
@@ -18,6 +20,20 @@ ApplicationWindow {
         target: SceneManager
         function onImageChanged() {
             image.reload();
+        }
+
+        function onEdgeChanged(type) {
+            horizontal.checked = false
+            vertical.checked = false
+            none.checked = false
+
+            if (type === Orientation.Horizontal) {
+                horizontal.checked = true
+            } else if (type === Orientation.Vertical) {
+                vertical.checked = true
+            } else {
+                none.checked = true
+            }
         }
     }
 
@@ -34,7 +50,7 @@ ApplicationWindow {
                 id: image
                 width: parent.width - 205
                 height: parent.height
-                source: "image://SceneManager/image"
+                source: "image://ImageProvider/image"
                 cache: false
                 focus: true
 
@@ -89,13 +105,84 @@ ApplicationWindow {
                 }
             }
 
-            // dodawanie i usuwanie np. za pośrednictwem kółka od myszy (na krawędzi dodaj, na wierzchołku usuń)
-            // usuwanie wielokąta za pośrednictwem delete
-
             Rectangle {
                 width: 200
                 height: parent.height
-                color: "grey"
+                color: "deepskyblue"
+
+                Column {
+                    padding: 5
+                    spacing: 10
+                    Column {
+                        focus: false
+                        spacing: 2
+                        Label {
+                            text: "Choose line algorithm:"
+                        }
+                        RadioButton {
+                            checked: true
+                            text: "Library"
+                            onClicked: {
+                                SceneManager.setType(Algorithm.Library)
+                            }
+                            focusPolicy: Qt.NoFocus
+                        }
+                        RadioButton {
+                            text: "Bresenham"
+                            onClicked: {
+                                SceneManager.setType(Algorithm.Bresenham)
+                            }
+                            focusPolicy: Qt.NoFocus
+                        }
+                    }
+                    Column {
+                        focus: false
+                        spacing: 2
+                        Label {
+                            text: "Change edge orientation:"
+                        }
+                        RadioButton {
+                            id: horizontal
+                            text: "Horizontal"
+                            onClicked: {
+                                SceneManager.changeOrientation(Orientation.Horizontal)
+                            }
+                            focusPolicy: Qt.NoFocus
+                        }
+                        RadioButton {
+                            id: vertical
+                            text: "Vertical"
+                            onClicked: {
+                                SceneManager.changeOrientation(Orientation.Vertical)
+                            }
+                            focusPolicy: Qt.NoFocus
+                        }
+                        RadioButton {
+                            id: none
+                            text: "None"
+                            onClicked: {
+                                SceneManager.changeOrientation(Orientation.None)
+                            }
+                            focusPolicy: Qt.NoFocus
+                            checked: true
+                        }
+                    }
+                    Column {
+                        spacing: 5
+                        Label {
+                            text: "Offset polygon:"
+                        }
+                        Slider {
+                            implicitWidth: 150
+                            from: 0
+                            value: 0
+                            to: 50
+                            stepSize: 1
+                            snapMode: Slider.SnapAlways
+                            focusPolicy: Qt.NoFocus
+                        }
+                    }
+                }
             }
         }
     }

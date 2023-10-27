@@ -1,10 +1,9 @@
 #include <QPainter>
-#include <QtMath>
 
 class Vertex
 {
     public:
-        const static int s_margin;
+        const static uint s_margin;
         QColor color;
         int thicc;
         int X;

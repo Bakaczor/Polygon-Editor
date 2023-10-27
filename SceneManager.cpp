@@ -1,15 +1,15 @@
+#include <QtConcurrent/QtConcurrent>
 #include <QImage>
 #include <QPainter>
 
 #include "SceneManager.h"
 #include "Functions.h"
 
-Algorithm SceneManager::s_type = Algorithm::Library;
-
-SceneManager::SceneManager(QObject *parent) :
-    QQuickImageProvider(QQuickImageProvider::Image),
+SceneManager::SceneManager(QObject* parent) :
+    QObject(parent),
     m_isBuilding(false),
     m_isDragging(false),
+    m_type(Algorithm::Enum::Library),
     lastPosition(0, 0),
     size(QSize(600, 600)),
     polyline(QList<Vertex>()),
@@ -19,26 +19,19 @@ SceneManager::SceneManager(QObject *parent) :
     currPolIdx(-1),
     currObject(Geometry::None)
 {
-    m_image.reset(new QImage(size, QImage::Format_ARGB32));
-    m_image->fill(m_background);
-    painter = QSharedPointer<QPainter>(new QPainter(m_image.get()));
-}
-
-SceneManager::~SceneManager()
-{
-    // QPainter must be freed before QImage
-    painter.clear();
-}
-
-QImage SceneManager::requestImage(const QString &id, QSize *size, const QSize &requestedSize)
-{
-    return *m_image.get();
+    image = QSharedPointer<QImage>(new QImage(size, QImage::Format_ARGB32), [this](QImage* image) {
+        // the painter must be freed before freeing the device
+        painter.clear();
+        delete image;
+    });
+    image->fill(m_background);
+    painter = QSharedPointer<QPainter>(new QPainter(image.get()));
 }
 
 void SceneManager::paint()
 {
-    //refresh image
-    m_image->fill(m_background);
+    // refresh image
+    image->fill(m_background);
 
     // draw the polyline
     if (!polyline.empty())
@@ -48,18 +41,17 @@ void SceneManager::paint()
         {
             const Vertex& v1 = polyline.at(i - 1);
             const Vertex& v2 = polyline.at(i);
-            drawLine(painter, QPoint(v1.X, v1.Y), QPoint(v2.X, v2.Y),
-                     s_type, 2, QColor(0, 0, 0, 255));
+            drawLine(painter, QPoint(v1.X, v1.Y), QPoint(v2.X, v2.Y), m_type, 2, QColor(0, 0, 0, 255));
             v2.paint(painter);
         }
     }
 
-    // draw polygons - parallelize
+    // draw polygons
     if (!polygons.empty())
     {
         for (const Polygon& p : polygons)
         {
-            p.paint(painter);
+            p.paint(painter, m_type);
         }
     }
 }
@@ -67,8 +59,7 @@ void SceneManager::paint()
 void SceneManager::drawProjection(int x, int y)
 {
     paint();
-    drawLine(painter, lastPosition, QPoint(x, y),
-             s_type, 2, QColor(0, 0, 0, 255));
+    drawLine(painter, lastPosition, QPoint(x, y), m_type, 2, QColor(0, 0, 0, 255));
     emit imageChanged();
 }
 
@@ -104,21 +95,19 @@ void SceneManager::stopBuilding(int x, int y)
     emit imageChanged();
 }
 
-// dodać odzielne handlery, przerobić pressed na dragging dla czytelności
-
 void SceneManager::checkObjects(int x, int y)
 {
     lastPosition = QPoint(x, y);
 
     if (polygons.isEmpty()) { return; }
     unselectObjects();
+    emit edgeChanged(Orientation::Enum::None);
 
-    // check polygons - parallelize
-    for (int i = 0; i < polygons.count(); i++)
-    {
-        Polygon& p = polygons[i];
+    // check polygons
+    QtConcurrent::blockingMap(polygons, [this](const Polygon& p) {
+        std::ptrdiff_t i = std::distance(&polygons.at(0), &p);
 
-        // check vertices - parallelize
+        // check vertices
         int vIdx = p.checkVertices(lastPosition);
         if (vIdx != -1)
         {
@@ -126,11 +115,10 @@ void SceneManager::checkObjects(int x, int y)
             currPolIdx = i;
             currVerIdx = vIdx;
             polygons[currPolIdx].vertices[currVerIdx]->select();
-            break;
         }
         else
         {
-            // check edges - parallelize
+            // check edges
             int eIdx = p.checkEdges(lastPosition);
             if (eIdx != -1)
             {
@@ -138,7 +126,7 @@ void SceneManager::checkObjects(int x, int y)
                 currPolIdx = i;
                 currEdgIdx = eIdx;
                 polygons[currPolIdx].edges[currEdgIdx].select();
-                break;
+                emit edgeChanged(polygons[currPolIdx].edges[currEdgIdx].getOrientation());
             }
             else
             {
@@ -147,11 +135,10 @@ void SceneManager::checkObjects(int x, int y)
                     currObject = Geometry::Polygon;
                     currPolIdx = i;
                     polygons[currPolIdx].select();
-                    break;
                 }
             }
         }
-    }
+    });
 
     paint();
     emit imageChanged();
@@ -172,12 +159,12 @@ void SceneManager::moveObject(int x, int y)
         }
         case Geometry::Edge:
         {
-            polygons[currPolIdx].edges[currEdgIdx].drag(dx, dy);
+            polygons[currPolIdx].dragEdge(dx, dy, currEdgIdx);
             break;
         }
         case Geometry::Vertex:
         {
-            polygons[currPolIdx].vertices[currVerIdx]->drag(x, y);
+            polygons[currPolIdx].dragVertex(x, y, currVerIdx);
             break;
         }
         case Geometry::None: return;
@@ -197,6 +184,22 @@ void SceneManager::stopDragging(int x, int y)
 {
     lastPosition = QPoint(x, y);
     m_isDragging = false;
+}
+
+void SceneManager::changeOrientation(Orientation::Enum orient)
+{
+    if (currPolIdx == -1 || currEdgIdx == -1) { return; }
+    if (orient != Orientation::Enum::None)
+    {
+        QList<Edge>& edges = polygons[currPolIdx].edges;
+        int peIdx = currEdgIdx == 0 ? edges.count() - 1 : currEdgIdx - 1;
+        int neIdx = currEdgIdx == edges.count() - 1 ? 0 : currEdgIdx + 1;
+        if (edges[peIdx].getOrientation() == orient || edges[neIdx].getOrientation() == orient) { return; }
+    }
+    polygons[currPolIdx].edges[currEdgIdx].setOrientation(orient);
+
+    paint();
+    emit imageChanged();
 }
 
 void SceneManager::insertVertex(int x, int y)
@@ -278,4 +281,18 @@ bool SceneManager::isBuilding() const
 bool SceneManager::isDragging() const
 {
     return m_isDragging;
+}
+
+Algorithm::Enum SceneManager::type() const
+{
+    return m_type;
+}
+
+void SceneManager::setType(Algorithm::Enum newType)
+{
+    if (m_type == newType) { return; }
+    m_type = newType;
+
+    paint();
+    emit imageChanged();
 }

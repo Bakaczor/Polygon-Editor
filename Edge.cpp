@@ -1,13 +1,11 @@
 #include <QtMath>
 
 #include "Edge.h"
+#include "Icon.h"
 
-const int Edge::s_margin = 5;
-Algorithm Edge::s_type = Algorithm::Library;
+const uint Edge::s_margin = 5;
 
-
-Edge::Edge(Vertex* v1, Vertex* v2) : first(v1), second(v2), orient(Orientation::None),
-    thicc(2), color(QColor(0, 0, 0, 255))
+Edge::Edge(Vertex* v1, Vertex* v2) : first(v1), second(v2), m_orient(Orientation::Enum::None), thicc(2), color(QColor(0, 0, 0, 255))
 {
     m_A = v1->Y - v2->Y;
     m_B = v2->X - v1->X;
@@ -22,9 +20,16 @@ void Edge::drag(int dx, int dy)
     second->Y += dy;
 }
 
-void Edge::paint(QSharedPointer<QPainter> painter) const
+void Edge::paint(QSharedPointer<QPainter> painter, const Algorithm::Enum& type) const
 {
-    drawLine(painter, (QPoint)*first, (QPoint)*second, s_type, thicc, color);
+    drawLine(painter, (QPoint)*first, (QPoint)*second, type, thicc, color);
+    if (m_orient != Orientation::Enum::None)
+    {
+        Icon i;
+        i.setPosition(getMiddle());
+        i.setSource(m_orient);
+        i.paint(painter.get());
+    }
 }
 
 void Edge::select()
@@ -37,6 +42,31 @@ void Edge::unselect()
 {
     thicc = 2;
     color = QColor(0, 0, 0, 255);
+}
+
+Orientation::Enum Edge::getOrientation() const
+{
+    return m_orient;
+}
+
+void Edge::setOrientation(Orientation::Enum newOrientation)
+{
+    if (m_orient != newOrientation)
+    {
+        m_orient = newOrientation;
+        if (newOrientation == Orientation::Enum::Horizontal)
+        {
+            const int dy = (second->Y - first->Y) >> 1;
+            first->Y += dy;
+            second->Y -= dy;
+        }
+        else if (newOrientation == Orientation::Enum::Vertical)
+        {
+            const int dx = (second->X - first->X) >> 1;
+            first->X += dx;
+            second->X -= dx;
+        }
+    }
 }
 
 bool operator==(const Edge& e1, const Edge& e2)
@@ -81,4 +111,11 @@ bool Edge::contains(const QPoint& p) const
     int dy = p.y() - yy;
 
     return dx * dx + dy * dy < s_margin * s_margin;
+}
+
+QPoint Edge::getMiddle() const
+{
+    const int dx = (second->X - first->X) >> 1;
+    const int dy = (second->Y - first->Y) >> 1;
+    return QPoint(first->X + dx, first->Y + dy);
 }
