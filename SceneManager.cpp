@@ -11,7 +11,7 @@ SceneManager::SceneManager(QObject* parent) :
     m_isDragging(false),
     m_type(Algorithm::Enum::Library),
     lastPosition(0, 0),
-    size(QSize(600, 600)),
+    size(QSize(800, 800)),
     polyline(QList<Vertex>()),
     polygons(QList<Polygon>()),
     currVerIdx(-1),
@@ -37,7 +37,7 @@ void SceneManager::paint()
     if (!polyline.empty())
     {
         polyline.at(0).paint(painter);
-        for (int i = 1; i < polyline.count(); i++)
+        for (uint i = 1; i < polyline.count(); i++)
         {
             const Vertex& v1 = polyline.at(i - 1);
             const Vertex& v2 = polyline.at(i);
@@ -197,6 +197,15 @@ void SceneManager::changeOrientation(Orientation::Enum orient)
         if (edges[peIdx].getOrientation() == orient || edges[neIdx].getOrientation() == orient) { return; }
     }
     polygons[currPolIdx].edges[currEdgIdx].setOrientation(orient);
+
+    paint();
+    emit imageChanged();
+}
+
+void SceneManager::updateOffset(uint offset)
+{
+    if (currObject != Geometry::Polygon) { return; }
+    polygons[currPolIdx].updateOffset(offset);
 
     paint();
     emit imageChanged();

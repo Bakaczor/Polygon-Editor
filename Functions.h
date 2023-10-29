@@ -1,4 +1,5 @@
 #include <QPainter>
+#include <QSharedPointer>
 
 #include "Enums.h"
 
@@ -9,6 +10,3 @@ void drawLine(QSharedPointer<QPainter> painter, const QPoint& p1, const QPoint& 
 void drawLibrary(QSharedPointer<QPainter> painter, const QPoint& p1, const QPoint& p2, const int& thicc, const QColor& color);
 
 void drawBresenham(QSharedPointer<QPainter> painter, const QPoint& p1, const QPoint& p2, const int& thicc, const QColor& color);
-
-// currently not used
-int findSector(const QPoint& p1, const QPoint& p2);

@@ -1,4 +1,5 @@
 #include <QPainter>
+#include <QSharedPointer>
 
 class Vertex
 {

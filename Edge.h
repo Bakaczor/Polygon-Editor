@@ -25,9 +25,6 @@ class Edge {
         friend bool operator==(const Edge& e1, const Edge& e2);
 
     private:
-        int m_A;
-        int m_B;
-        long long m_C;
         Orientation::Enum m_orient;
 
         QPoint getMiddle() const;

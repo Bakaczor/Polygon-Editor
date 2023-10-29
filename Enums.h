@@ -22,4 +22,9 @@ enum class Geometry
     Polygon, Edge, Vertex, None
 };
 
+enum class Clock
+{
+    Clockwise, Anticlockwise, Collinear
+};
+
 #endif

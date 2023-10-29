@@ -1,6 +1,9 @@
 #include <QtConcurrent/QtConcurrent>
 
+#include "earcut.hpp"
+
 #include "Polygon.h"
+#include "Geometry.h"
 
 Polygon::Polygon(QList<Vertex> verts)
 {
@@ -11,7 +14,7 @@ Polygon::Polygon(QList<Vertex> verts)
     }
 
     // create edges
-    for (int i = 0; i < vertices.count() - 1; i++)
+    for (uint i = 0; i < vertices.count() - 1; i++)
     {
         edges.append(Edge(vertices.at(i).get(), vertices.at(i + 1).get()));
     }
@@ -24,10 +27,19 @@ void Polygon::drag(int dx, int dy)
         pv->X += dx;
         pv->Y += dy;
     });
+    updateOffset(m_offset);
 }
 
 void Polygon::paint(QSharedPointer<QPainter> painter, const Algorithm::Enum& type) const
 {
+    if (!m_offsetPoly.empty())
+    {
+        QPen p;
+        p.setWidth(2);
+        p.setColor(QColor(0, 0, 0, 255));
+        painter->setPen(p);
+        painter->drawPolygon(m_offsetPoly);
+    }
     for (const Edge& e : edges)
     {
         e.paint(painter, type);
@@ -80,6 +92,8 @@ void Polygon::insertVertex(int x, int y, int eIdx)
     edges.removeAt(eIdx);
     edges.insert(eIdx, pe);
     edges.insert(eIdx + 1, ne);
+
+    updateOffset(m_offset);
 }
 
 bool Polygon::removeVertex(int vIdx)
@@ -99,6 +113,8 @@ bool Polygon::removeVertex(int vIdx)
     }
     vertices.removeAt(vIdx);
     edges.removeAt(vIdx);
+
+    updateOffset(m_offset);
     return true;
 }
 
@@ -115,7 +131,7 @@ bool Polygon::contains(const QPoint& p) const
 
 int Polygon::checkVertices(const QPoint& p) const
 {
-    for (int i = 0; i < vertices.count(); i++)
+    for (uint i = 0; i < vertices.count(); i++)
     {
         if (*vertices.at(i) == Vertex(p.x(), p.y())) { return i; }
     }
@@ -164,6 +180,7 @@ void Polygon::dragVertex(int x, int y, int currVerIdx)
     }
 
     vertices[currVerIdx]->drag(x, y);
+    updateOffset(m_offset);
 }
 
 void Polygon::dragEdge(int dx, int dy, int currEdgIdx)
@@ -202,4 +219,62 @@ void Polygon::dragEdge(int dx, int dy, int currEdgIdx)
     {
         vertices[nvIdx]->drag(vertices.at(cnvIdx)->X, vertices.at(nvIdx)->Y);
     }
+    updateOffset(m_offset);
 }
+
+void Polygon::updateOffset(int offset)
+{
+    m_offset = offset;
+    m_offsetPoly.clear();
+    if (offset == 0) { return; }
+
+    QVector<QPoint> points;
+    points.reserve(vertices.count());
+    for (const auto& pv : vertices)
+    {
+        points.append(static_cast<QPoint>(*pv));
+    }
+
+    if (!polygonSign(points))
+    {
+        m_offset = -m_offset;
+    }
+
+    uint n = points.count();
+    QVector<QPair<QPoint, QPoint>> segments;
+    segments.reserve(vertices.count());
+    for (uint i = 0; i < n - 1; i++)
+    {
+        segments.append(offsetSegment(points.at(i), points.at(i + 1), m_offset));
+    }
+    segments.append(offsetSegment(points.constLast(), points.constFirst(), m_offset));
+
+    //QVector<QPoint> rawPolygon;
+    for (uint i = 0; i < n - 1; i++)
+    {
+        std::optional<QPoint> opt = lineIntersection(segments.at(i).first, segments.at(i).second, segments.at(i + 1).first, segments.at(i + 1).second);
+        if (opt.has_value())
+        {
+            m_offsetPoly.append(opt.value());
+        }
+    }
+    std::optional<QPoint> opt = lineIntersection(segments.constLast().first, segments.constLast().second, segments.constFirst().first, segments.constFirst().second);
+    if (opt.has_value())
+    {
+        m_offsetPoly.append(opt.value());
+    }
+
+}
+
+/*
+    using Point = std::array<int, 2>;
+    std::vector<Point> polyline;
+    polyline.reserve(vertices.count());
+    for (const auto& pv : vertices)
+    {
+        polyline.push_back({pv->X, pv->Y});
+    }
+    std::vector<std::vector<Point>> polygon;
+    polygon.push_back(polyline);
+    std::vector<int> indices = mapbox::earcut<int>(polygon);
+*/

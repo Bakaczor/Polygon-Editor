@@ -21,4 +21,9 @@ class Polygon
         int checkEdges(const QPoint& p) const;
         void dragVertex(int x, int y, int currVerIdx);
         void dragEdge(int dx, int dy, int currEdgIdx);
+        void updateOffset(int offset);
+
+    private:
+        uint m_offset;
+        QPolygon m_offsetPoly;
 };

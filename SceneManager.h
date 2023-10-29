@@ -45,6 +45,7 @@ class SceneManager : public QObject
         void unselectObjects();
         void setType(Algorithm::Enum newType);
         void changeOrientation(Orientation::Enum orient);
+        void updateOffset(uint offset);
 
     signals:
         void imageChanged();

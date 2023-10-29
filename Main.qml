@@ -8,10 +8,10 @@ import com.orientation.enum 1.0
 ApplicationWindow {
     id: main_window
     visible: true
-    minimumWidth: 800
-    maximumWidth: 800
-    minimumHeight: 600
-    maximumHeight: 600
+    minimumWidth: 1000
+    maximumWidth: 1000
+    minimumHeight: 800
+    maximumHeight: 800
     title: "Polygon Editor"
 
     readonly property int offset: 6
@@ -173,6 +173,7 @@ ApplicationWindow {
                             text: "Offset polygon:"
                         }
                         Slider {
+                            id: slider
                             implicitWidth: 150
                             from: 0
                             value: 0
@@ -180,6 +181,9 @@ ApplicationWindow {
                             stepSize: 1
                             snapMode: Slider.SnapAlways
                             focusPolicy: Qt.NoFocus
+                            onMoved: {
+                                SceneManager.updateOffset(slider.value)
+                            }
                         }
                     }
                 }

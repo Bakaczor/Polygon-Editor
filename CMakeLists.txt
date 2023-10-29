@@ -4,7 +4,7 @@ project(Polygon-Editor VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Quick)
 find_package(Qt6 REQUIRED COMPONENTS Core)
 find_package(Qt6 REQUIRED COMPONENTS Concurrent)
 
@@ -25,21 +25,10 @@ qt_add_qml_module(appPolygon-Editor
     URI Polygon-Editor
     VERSION 1.0
     QML_FILES Main.qml
-    SOURCES Edge.h Edge.cpp
-    SOURCES Polygon.h Polygon.cpp
-    SOURCES SceneManager.cpp SceneManager.h
-    SOURCES Vertex.h Vertex.cpp
-    SOURCES Functions.h
-    SOURCES Functions.cpp
-    SOURCES Enums.h
-    SOURCES
-    SOURCES
-    SOURCES
-    RESOURCES
-    SOURCES Icon.h
-    SOURCES Icon.cpp
-    SOURCES ImageProvider.h
-    SOURCES ImageProvider.cpp
+    SOURCES Edge.cpp Edge.h Enums.h Functions.cpp Functions.h Icon.cpp Icon.h ImageProvider.cpp ImageProvider.h Polygon.cpp Polygon.h SceneManager.cpp SceneManager.h Vertex.cpp Vertex.h
+    SOURCES Geometry.h
+    SOURCES Geometry.cpp
+    SOURCES earcut.hpp
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
@@ -71,6 +60,3 @@ install(TARGETS appPolygon-Editor
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
-
-
-

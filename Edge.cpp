@@ -5,12 +5,7 @@
 
 const uint Edge::s_margin = 5;
 
-Edge::Edge(Vertex* v1, Vertex* v2) : first(v1), second(v2), m_orient(Orientation::Enum::None), thicc(2), color(QColor(0, 0, 0, 255))
-{
-    m_A = v1->Y - v2->Y;
-    m_B = v2->X - v1->X;
-    m_C = v1->X * v2->Y - v2->X * v1->Y;
-}
+Edge::Edge(Vertex* v1, Vertex* v2) : first(v1), second(v2), m_orient(Orientation::Enum::None), thicc(2), color(QColor(0, 0, 0, 255)) {}
 
 void Edge::drag(int dx, int dy)
 {
@@ -22,7 +17,7 @@ void Edge::drag(int dx, int dy)
 
 void Edge::paint(QSharedPointer<QPainter> painter, const Algorithm::Enum& type) const
 {
-    drawLine(painter, (QPoint)*first, (QPoint)*second, type, thicc, color);
+    drawLine(painter, static_cast<QPoint>(*first), static_cast<QPoint>(*second), type, thicc, color);
     if (m_orient != Orientation::Enum::None)
     {
         Icon i;
@@ -82,6 +77,7 @@ bool operator==(const Edge& e1, const Edge& e2)
     return false;
 }
 
+// https://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
 bool Edge::contains(const QPoint& p) const
 {
     int A = p.x() - first->X;
@@ -89,7 +85,7 @@ bool Edge::contains(const QPoint& p) const
     int C = second->X - first->X;
     int D = second->Y - first->Y;
     long dot = A * C + B * D;
-    long lensq = C * C  + D * D;
+    long lensq = C * C + D * D;
 
     int xx, yy;
     if (dot <= 0)
