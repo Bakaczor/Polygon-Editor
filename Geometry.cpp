@@ -1,3 +1,6 @@
+#include <QVector>
+#include <QtMath>
+
 #include "Geometry.h"
 
 int findSector(const QPoint &p1, const QPoint &p2)
@@ -93,14 +96,15 @@ QPair<QPoint, QPoint> offsetSegment(const QPoint& p1, const QPoint& p2, const in
 {
     const QPoint A = p2 - p1 == QPoint(0, 0) ? QPoint(1, 1) : p2 - p1;
     QPoint P(A.y(), -A.x());
-    const long len = qSqrt(P.x() * P.x() + P.y() * P.y());
-    P.rx() = offset * P.x() / len;
-    P.ry() = offset * P.y() / len;
+    const float len = qSqrt(P.x() * P.x() + P.y() * P.y());
+    P.rx() = (offset * P.x()) / len;
+    P.ry() = (offset * P.y()) / len;
     return QPair<QPoint, QPoint>(p1 + P, p2 + P);
 }
 
 bool polygonSign(const QVector<QPoint>& points)
 {
+    /*
     long long sum = 0;
     for (uint i = 0; i < points.count() - 1; i++)
     {
@@ -108,4 +112,22 @@ bool polygonSign(const QVector<QPoint>& points)
     }
     sum += cross2D(points.constLast(), points.constFirst());
     return sum > 0;
+    */
+
+    uint n = points.count();
+    uint i = 0;
+    for (uint j = 1; j < n; j++)
+    {
+        if (points.at(j).x() <= points.at(i).x())
+        {
+            if (points.at(j).x() < points.at(i).x() || points.at(j).y() < points.at(i).y())
+            {
+                i = j;
+            }
+        }
+    }
+    const QPoint& A = points.at((i - 1) % n);
+    const QPoint& B = points.at(i);
+    const QPoint& C = points.at((i + 1) % n);
+    return (B.x() - A.x()) * (C.y() - A.y()) - (C.x() - A.x()) * (B.y() - A.y()) > 0;
 }

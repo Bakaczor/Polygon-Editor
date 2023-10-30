@@ -1,6 +1,6 @@
 #include <QtConcurrent/QtConcurrent>
 
-#include "earcut.hpp"
+//#include "earcut.hpp"
 
 #include "Polygon.h"
 #include "Geometry.h"
@@ -249,7 +249,6 @@ void Polygon::updateOffset(int offset)
     }
     segments.append(offsetSegment(points.constLast(), points.constFirst(), m_offset));
 
-    //QVector<QPoint> rawPolygon;
     for (uint i = 0; i < n - 1; i++)
     {
         std::optional<QPoint> opt = lineIntersection(segments.at(i).first, segments.at(i).second, segments.at(i + 1).first, segments.at(i + 1).second);
@@ -263,7 +262,6 @@ void Polygon::updateOffset(int offset)
     {
         m_offsetPoly.append(opt.value());
     }
-
 }
 
 /*

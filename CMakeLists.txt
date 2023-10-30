@@ -29,6 +29,8 @@ qt_add_qml_module(appPolygon-Editor
     SOURCES Geometry.h
     SOURCES Geometry.cpp
     SOURCES earcut.hpp
+    SOURCES OffsetPolygon.h
+    SOURCES OffsetPolygon.cpp
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
