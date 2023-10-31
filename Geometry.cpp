@@ -54,8 +54,8 @@ std::optional<QPoint> segmentIntersection(const QPoint& p1, const QPoint& p2, co
     if (r_s == 0) { return std::nullopt; }
 
     const QPoint q_p = q - p;
-    const float t = cross2D(q_p, s) / r_s;
-    const float u = cross2D(q_p, r) / r_s;
+    const float t = cross2D(q_p, s) / static_cast<float>(r_s);
+    const float u = cross2D(q_p, r) / static_cast<float>(r_s);
 
     if (t >= 0 && t <= 1 && u >= 0 && u <= 1)
     {
@@ -86,8 +86,8 @@ std::optional<QPoint> lineIntersection(const QPoint& p1, const QPoint& p2, const
     else
     {
         // Crammer's rule
-        int x = cross2D(QPoint(C1, B1), QPoint(C2, B2)) / det;
-        int y = cross2D(QPoint(A1, C1), QPoint(A2, C2)) / det;
+        int x = cross2D(QPoint(C1, B1), QPoint(C2, B2)) / static_cast<float>(det);
+        int y = cross2D(QPoint(A1, C1), QPoint(A2, C2)) / static_cast<float>(det);
         return QPoint(x, y);
     }
 }

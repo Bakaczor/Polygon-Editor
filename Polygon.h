@@ -1,6 +1,7 @@
 #include <QPainter>
 
 #include "Edge.h"
+#include "OffsetPolygon.h"
 
 class Polygon
 {
@@ -25,5 +26,5 @@ class Polygon
 
     private:
         uint m_offset;
-        QPolygon m_offsetPoly;
+        OffsetPolygon m_offsetPoly;
 };

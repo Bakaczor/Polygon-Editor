@@ -197,6 +197,7 @@ void SceneManager::changeOrientation(Orientation::Enum orient)
         if (edges[peIdx].getOrientation() == orient || edges[neIdx].getOrientation() == orient) { return; }
     }
     polygons[currPolIdx].edges[currEdgIdx].setOrientation(orient);
+    polygons[currPolIdx].updateOffset(-1);
 
     paint();
     emit imageChanged();

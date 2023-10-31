@@ -3,9 +3,12 @@
 #include "Functions.h"
 #include "Geometry.h"
 #include "OffsetPolygon.h"
+#include "qdebug.h"
 
 OffsetPolygon::OffsetPolygon(const QVector<QPoint> &points, const int &offset)
 {
+    m_polygon = QVector<QPoint>();
+    m_loops = QVector<QVector<QPoint>>();
     if (offset != 0 && !points.empty())
     {
         update(points, offset);
@@ -14,8 +17,15 @@ OffsetPolygon::OffsetPolygon(const QVector<QPoint> &points, const int &offset)
 
 void OffsetPolygon::paint(QSharedPointer<QPainter> painter, const Algorithm::Enum &type) const
 {
-    for (const QVector<QPoint>& poly : m_polygons)
+    //drawBack(painter, m_polygon, s_color);
+    for (uint i = 0; i < m_polygon.count() - 1; i++)
     {
+        drawLine(painter, m_polygon.at(i), m_polygon.at(i + 1), type, s_thicc, s_color);
+    }
+    drawLine(painter, m_polygon.constLast(), m_polygon.constFirst(), type, s_thicc, s_color);
+    for (const QVector<QPoint>& poly : m_loops)
+    {
+        //drawBack(painter, poly, QColor(255, 255, 255, 255));
         for (uint i = 0; i < poly.count() - 1; i++)
         {
             drawLine(painter, poly.at(i), poly.at(i + 1), type, s_thicc, s_color);
@@ -26,13 +36,22 @@ void OffsetPolygon::paint(QSharedPointer<QPainter> painter, const Algorithm::Enu
 
 void OffsetPolygon::update(const QVector<QPoint> &points, const int &offset)
 {
+    m_polygon.clear();
+    m_loops.clear();
+    if (offset == 0) { return; }
     QVector<QPair<QPoint, QPoint>> segments = generateOffsetSegments(points, offset);
+    /*
+    QVector<QPoint> baseIntersections;
+    for (const QPair<QPoint, QPoint>& seg : segments)
+    {
+        baseIntersections.append(seg.first);
+        baseIntersections.append(seg.second);
+    }
+    */
     QVector<QPoint> baseIntersections = calculateBaseIntersections(segments);
     QVector<QPair<QPoint, bool>> allIntersections = calculateAllIntersections(baseIntersections);
-    QVector<QVector<QPoint>> loops = removeNeedlessAndGetLoops(allIntersections);
-    QVector<QPoint> mainLoop = removeCollinearAndDoubles(allIntersections);
-    loops.append(mainLoop);
-    m_polygons = loops;
+    m_loops = removeNeedlessAndGetLoops(allIntersections);
+    m_polygon = removeCollinearAndDoubles(allIntersections);
 }
 
 QVector<QPair<QPoint, QPoint> > generateOffsetSegments(const QVector<QPoint> &points, const int& offset)
@@ -44,6 +63,13 @@ QVector<QPair<QPoint, QPoint> > generateOffsetSegments(const QVector<QPoint> &po
         segments.append(offsetSegment(points.at(i), points.at(i + 1), offset));
     }
     segments.append(offsetSegment(points.constLast(), points.constFirst(), offset));
+    /*
+    qDebug() << "S";
+    for(auto el : segments)
+    {
+        qDebug() << el << "\n";
+    }
+    */
     return segments;
 }
 
@@ -64,6 +90,14 @@ QVector<QPoint> calculateBaseIntersections(const QVector<QPair<QPoint, QPoint> >
     {
         baseIntersections.append(opt.value());
     }
+    /*
+    qDebug() << "BI";
+    for(auto el : baseIntersections)
+    {
+        qDebug() << el;
+    }
+    qDebug() << "\n";
+    */
     return baseIntersections;
 }
 
@@ -77,6 +111,7 @@ QVector<QPair<QPoint, bool> > calculateAllIntersections(const QVector<QPoint> &b
         uint ni = (i + 1) % n;
         allIntersections.append(qMakePair(baseIntersections.at(i), false));
 
+        // dodać do pośredniej i posortować po odległości od baseIntersection[i]
         for (uint j = 0; j < n; j++)
         {
             uint nj = (j + 1) % n;
@@ -89,13 +124,21 @@ QVector<QPair<QPoint, bool> > calculateAllIntersections(const QVector<QPoint> &b
             }
         }
     }
+    qDebug() << "AI";
+    /*
+    for(auto el : allIntersections)
+    {
+        qDebug() << el;
+    }
+    qDebug() << "\n";
+    */
     return allIntersections;
 }
 
 QVector<QVector<QPoint>> removeNeedlessAndGetLoops(QVector<QPair<QPoint, bool>> &allIntersections)
 {
     QVector<QVector<QPoint>> loops;
-    QVector<bool> toTake;
+    QVector<bool> toTake(allIntersections.count(), false);
     QStack<QPair<QPoint, uint>> stack;
     bool flag = true;
     uint i = 0;
@@ -112,7 +155,8 @@ QVector<QVector<QPoint>> removeNeedlessAndGetLoops(QVector<QPair<QPoint, bool>> 
             else
             {
                 const auto& top = stack.top();
-                if (top.first == pair.first)
+                if (qFabs(top.first.x() - pair.first.x()) < OffsetPolygon::s_margin &&
+                    qFabs(top.first.y() - pair.first.y()) < OffsetPolygon::s_margin)
                 {
                     uint taken = 0;
                     for (uint j = top.second + 1; j < i; j++)
@@ -132,7 +176,9 @@ QVector<QVector<QPoint>> removeNeedlessAndGetLoops(QVector<QPair<QPoint, bool>> 
                         }
                         toTake[i] = false;
                         loops.append(loop);
+                        //sprawdzić cross2D trzech kolejnych
                     }
+                    // else toTake false
                     stack.pop();
                 }
                 else
@@ -163,20 +209,32 @@ QVector<QVector<QPoint>> removeNeedlessAndGetLoops(QVector<QPair<QPoint, bool>> 
         }
     }
     allIntersections = taken;
+    qDebug() << "L" << loops.count();
+    for(auto& el : loops)
+    {
+        for(auto ell : el)
+        {
+            qDebug() << el;
+        }
+        qDebug() << "\n";
+    }
+    qDebug() << "\n";
     return loops;
 }
 
-QVector<QPoint> removeCollinearAndDoubles(const QVector<QPair<QPoint, bool>> &allIntersections)
+QVector<QPoint> removeCollinearAndDoubles(const QVector<QPair<QPoint, bool>>& allIntersections)
 {
     QVector<QPoint> mainLoop;
     uint n = allIntersections.count();
     uint i = 0;
+    //  najpierw usuń duble, potem trójki cross2D
     while (i < n)
     {
         if (allIntersections.at(i).second)
         {
             uint ni = (i + 1) % n;
-            if (allIntersections.at(i).first == allIntersections.at(ni).first)
+            if (qFabs(allIntersections.at(i).first.x() - allIntersections.at(ni).first.x()) < OffsetPolygon::s_margin &&
+                qFabs(allIntersections.at(i).first.y() - allIntersections.at(ni).first.y()) < OffsetPolygon::s_margin)
             {
                 mainLoop.append(allIntersections.at(i).first);
                 i += 2;
@@ -200,5 +258,11 @@ QVector<QPoint> removeCollinearAndDoubles(const QVector<QPair<QPoint, bool>> &al
             i += 1;
         }
     }
+    qDebug() << "ML";
+    for(auto el : mainLoop)
+    {
+        qDebug() << el;
+    }
+    qDebug() << "\n";
     return mainLoop;
 }

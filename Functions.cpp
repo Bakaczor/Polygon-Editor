@@ -107,3 +107,15 @@ void drawBresenham(QSharedPointer<QPainter> painter, const QPoint &p1, const QPo
             }
     }
 }
+
+void drawBack(QSharedPointer<QPainter> painter, const QVector<QPoint>& points, const QColor& color)
+{
+    QBrush b(color);
+    b.setStyle(Qt::SolidPattern);
+    painter->setBrush(b);
+    QPen p(color);
+    p.setWidth(1);
+    painter->setPen(p);
+    QPolygon poly(points);
+    painter->drawPolygon(poly);
+}

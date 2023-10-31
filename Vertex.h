@@ -4,7 +4,7 @@
 class Vertex
 {
     public:
-        const static uint s_margin;
+        const static uint s_margin = 7;
         QColor color;
         int thicc;
         int X;

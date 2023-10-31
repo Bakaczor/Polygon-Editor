@@ -3,8 +3,6 @@
 #include "Edge.h"
 #include "Icon.h"
 
-const uint Edge::s_margin = 5;
-
 Edge::Edge(Vertex* v1, Vertex* v2) : first(v1), second(v2), m_orient(Orientation::Enum::None), thicc(2), color(QColor(0, 0, 0, 255)) {}
 
 void Edge::drag(int dx, int dy)

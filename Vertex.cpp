@@ -1,7 +1,5 @@
 #include "Vertex.h"
 
-const uint Vertex::s_margin = 7;
-
 Vertex::Vertex(int x, int y): X(x), Y(y), thicc(6), color(QColor(0, 0, 255, 255)) {}
 
 void Vertex::drag(int x, int y)

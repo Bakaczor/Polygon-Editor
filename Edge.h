@@ -5,7 +5,7 @@
 
 class Edge {
     public:
-        const static uint s_margin;
+        const static uint s_margin = 7;
         Vertex* first;
         Vertex* second;
         QColor color;

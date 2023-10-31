@@ -19,6 +19,9 @@ Polygon::Polygon(QList<Vertex> verts)
         edges.append(Edge(vertices.at(i).get(), vertices.at(i + 1).get()));
     }
     edges.append(Edge(vertices.last().get(), vertices.first().get()));
+
+    m_offset = 0;
+    m_offsetPoly = OffsetPolygon();
 }
 
 void Polygon::drag(int dx, int dy)
@@ -34,12 +37,15 @@ void Polygon::paint(QSharedPointer<QPainter> painter, const Algorithm::Enum& typ
 {
     if (!m_offsetPoly.empty())
     {
-        QPen p;
-        p.setWidth(2);
-        p.setColor(QColor(0, 0, 0, 255));
-        painter->setPen(p);
-        painter->drawPolygon(m_offsetPoly);
+        m_offsetPoly.paint(painter, type);
     }
+    QVector<QPoint> points;
+    points.reserve(vertices.count());
+    for (const auto& pv : vertices)
+    {
+        points.append(static_cast<QPoint>(*pv));
+    }
+    drawBack(painter, points, QColor(255, 255, 255, 255));
     for (const Edge& e : edges)
     {
         e.paint(painter, type);
@@ -224,9 +230,10 @@ void Polygon::dragEdge(int dx, int dy, int currEdgIdx)
 
 void Polygon::updateOffset(int offset)
 {
-    m_offset = offset;
-    m_offsetPoly.clear();
-    if (offset == 0) { return; }
+    if (offset < 0)
+    {
+        offset = m_offset;
+    }
 
     QVector<QPoint> points;
     points.reserve(vertices.count());
@@ -237,31 +244,11 @@ void Polygon::updateOffset(int offset)
 
     if (!polygonSign(points))
     {
-        m_offset = -m_offset;
+        offset = -offset;
     }
 
-    uint n = points.count();
-    QVector<QPair<QPoint, QPoint>> segments;
-    segments.reserve(vertices.count());
-    for (uint i = 0; i < n - 1; i++)
-    {
-        segments.append(offsetSegment(points.at(i), points.at(i + 1), m_offset));
-    }
-    segments.append(offsetSegment(points.constLast(), points.constFirst(), m_offset));
-
-    for (uint i = 0; i < n - 1; i++)
-    {
-        std::optional<QPoint> opt = lineIntersection(segments.at(i).first, segments.at(i).second, segments.at(i + 1).first, segments.at(i + 1).second);
-        if (opt.has_value())
-        {
-            m_offsetPoly.append(opt.value());
-        }
-    }
-    std::optional<QPoint> opt = lineIntersection(segments.constLast().first, segments.constLast().second, segments.constFirst().first, segments.constFirst().second);
-    if (opt.has_value())
-    {
-        m_offsetPoly.append(opt.value());
-    }
+    m_offsetPoly.update(points, offset);
+    m_offset = offset;
 }
 
 /*
