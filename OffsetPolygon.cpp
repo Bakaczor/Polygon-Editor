@@ -176,7 +176,7 @@ QVector<QVector<QPoint>> removeNeedlessAndGetLoops(QVector<QPair<QPoint, bool>> 
                         }
                         toTake[i] = false;
                         loops.append(loop);
-                        //sprawdzić cross2D trzech kolejnych
+                        //sprawdzić cross2D trzech kolejnych, ale flaga musi zostać
                     }
                     // else toTake false
                     stack.pop();
