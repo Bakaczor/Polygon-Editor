@@ -6,10 +6,10 @@
 class Polygon
 {
     public:
-        QList<QSharedPointer<Vertex>> vertices;
-        QList<Edge> edges;
+        QVector<QSharedPointer<Vertex>> vertices;
+        QVector<Edge> edges;
 
-        Polygon(QList<Vertex> verts);
+        Polygon(QVector<Vertex> verts);
 
         void drag(int dx, int dy);
         void paint(QSharedPointer<QPainter> painter, const Algorithm::Enum& type) const;

@@ -5,7 +5,7 @@
 #include "Polygon.h"
 #include "Geometry.h"
 
-Polygon::Polygon(QList<Vertex> verts)
+Polygon::Polygon(QVector<Vertex> verts)
 {
     // add vertices
     for (const Vertex v : verts)

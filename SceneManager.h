@@ -17,8 +17,8 @@ class SceneManager : public QObject
         QPoint lastPosition;
         QSize size;
 
-        QList<Vertex> polyline;
-        QList<Polygon> polygons;
+        QVector<Vertex> polyline;
+        QVector<Polygon> polygons;
 
         Geometry currObject;
         int currVerIdx;

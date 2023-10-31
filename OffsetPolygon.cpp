@@ -1,4 +1,6 @@
 #include <QStack>
+#include <vector>
+#include <algorithm>
 
 #include "Functions.h"
 #include "Geometry.h"
@@ -54,7 +56,7 @@ void OffsetPolygon::update(const QVector<QPoint> &points, const int &offset)
     m_polygon = removeCollinearAndDoubles(allIntersections);
 }
 
-QVector<QPair<QPoint, QPoint> > generateOffsetSegments(const QVector<QPoint> &points, const int& offset)
+QVector<QPair<QPoint, QPoint> > generateOffsetSegments(const QVector<QPoint>& points, const int& offset)
 {
     QVector<QPair<QPoint, QPoint>> segments;
     segments.reserve(points.count());
@@ -101,31 +103,47 @@ QVector<QPoint> calculateBaseIntersections(const QVector<QPair<QPoint, QPoint> >
     return baseIntersections;
 }
 
-QVector<QPair<QPoint, bool> > calculateAllIntersections(const QVector<QPoint> &baseIntersections)
+QVector<QPair<QPoint, bool> > calculateAllIntersections(const QVector<QPoint>& baseIntersections)
 {
     uint n = baseIntersections.count();
     QVector<QPair<QPoint, bool>> allIntersections;
     allIntersections.reserve(n);
     for (uint i = 0; i < n; i++)
     {
+        const QPoint& iP = baseIntersections.at(i);
         uint ni = (i + 1) % n;
-        allIntersections.append(qMakePair(baseIntersections.at(i), false));
+        // move the base intersection
+        allIntersections.append(qMakePair(iP, false));
 
-        // dodać do pośredniej i posortować po odległości od baseIntersection[i]
+        std::vector<QPoint> intersections;
         for (uint j = 0; j < n; j++)
         {
             uint nj = (j + 1) % n;
             // skip obvious intersections
             if (i == j || i == nj || ni == j) { continue; }
-            std::optional<QPoint> opt = segmentIntersection(baseIntersections.at(i), baseIntersections.at(ni), baseIntersections.at(j), baseIntersections.at(nj));
+            std::optional<QPoint> opt = segmentIntersection(iP, baseIntersections.at(ni), baseIntersections.at(j), baseIntersections.at(nj));
             if (opt.has_value())
             {
-                allIntersections.append(qMakePair(opt.value(), true));
+                intersections.push_back(opt.value());
             }
         }
+
+        // sort new intersections by the distance to iP
+        std::sort(begin(intersections), end(intersections), [&iP](const QPoint& p1, const QPoint& p2) {
+            const int dx1 = p1.x() - iP.x();
+            const int dy1 = p1.y() - iP.y();
+            const int dx2 = p2.x() - iP.x();
+            const int dy2 = p2.y() - iP.y();
+            return dx1 * dx1 + dy1 * dy1 < dx2 * dx2 + dy2 * dy2;
+        });
+
+        for (const QPoint& p : intersections)
+        {
+            allIntersections.append(qMakePair(p, true));
+        }
     }
-    qDebug() << "AI";
     /*
+    qDebug() << "AI";
     for(auto el : allIntersections)
     {
         qDebug() << el;
@@ -135,11 +153,16 @@ QVector<QPair<QPoint, bool> > calculateAllIntersections(const QVector<QPoint> &b
     return allIntersections;
 }
 
-QVector<QVector<QPoint>> removeNeedlessAndGetLoops(QVector<QPair<QPoint, bool>> &allIntersections)
+QVector<QVector<QPoint>> removeNeedlessAndGetLoops(QVector<QPair<QPoint, bool>>& allIntersections)
 {
+    const auto equal = [](const QPoint& p1, const QPoint& p2) {
+        return qFabs(p1.x() - p2.x()) < OffsetPolygon::s_margin
+               && qFabs(p1.y() - p2.y()) < OffsetPolygon::s_margin;
+    };
     QVector<QVector<QPoint>> loops;
-    QVector<bool> toTake(allIntersections.count(), false);
+    QVector<bool> toTake(allIntersections.count(), true);
     QStack<QPair<QPoint, uint>> stack;
+    uint n = allIntersections.count();
     bool flag = true;
     uint i = 0;
     for (const QPair<QPoint, bool>& pair : allIntersections)
@@ -147,7 +170,6 @@ QVector<QVector<QPoint>> removeNeedlessAndGetLoops(QVector<QPair<QPoint, bool>> 
         if (pair.second)
         {
             flag = !flag;
-            toTake[i] = true;
             if (stack.empty())
             {
                 stack.push(qMakePair(pair.first, i));
@@ -155,9 +177,9 @@ QVector<QVector<QPoint>> removeNeedlessAndGetLoops(QVector<QPair<QPoint, bool>> 
             else
             {
                 const auto& top = stack.top();
-                if (qFabs(top.first.x() - pair.first.x()) < OffsetPolygon::s_margin &&
-                    qFabs(top.first.y() - pair.first.y()) < OffsetPolygon::s_margin)
+                if (equal(top.first, pair.first))
                 {
+                    // calculate number of points in loop
                     uint taken = 0;
                     for (uint j = top.second + 1; j < i; j++)
                     {
@@ -174,26 +196,32 @@ QVector<QVector<QPoint>> removeNeedlessAndGetLoops(QVector<QPair<QPoint, bool>> 
                             loop.append(allIntersections.at(j).first);
                             toTake[j] = false;
                         }
-                        toTake[i] = false;
                         loops.append(loop);
-                        //sprawdzić cross2D trzech kolejnych, ale flaga musi zostać
+
+                        // check the collinearity just after the loop
+                        const QPoint& iP = pair.first;
+                        const QPoint& niP = allIntersections.at((i + 1) % n).first;
+                        const QPoint& nniP = allIntersections.at((i + 2) % n).first;
+                        if (cross2D(iP - niP, iP - nniP) == 0)
+                        {
+                            toTake[(i + 1) % n] = false;
+                        }
                     }
-                    // else toTake false
+                    toTake[i] = false;
                     stack.pop();
                 }
                 else
                 {
-                    stack.push(qMakePair(pair.first, i));
+                    if (toTake[i])
+                    {
+                        stack.push(qMakePair(pair.first, i));
+                    }
                 }
             }
         }
         else
         {
-            if (flag)
-            {
-                toTake[i] = true;
-            }
-            else
+            if (!flag)
             {
                 toTake[i] = false;
             }
