@@ -28,7 +28,7 @@ qt_add_qml_module(appPolygon-Editor
     SOURCES Edge.cpp Edge.h Enums.h Functions.cpp Functions.h Icon.cpp Icon.h ImageProvider.cpp ImageProvider.h Polygon.cpp Polygon.h SceneManager.cpp SceneManager.h Vertex.cpp Vertex.h
     SOURCES Geometry.h
     SOURCES Geometry.cpp
-    SOURCES earcut.hpp
+    SOURCES
     SOURCES OffsetPolygon.h
     SOURCES OffsetPolygon.cpp
 )

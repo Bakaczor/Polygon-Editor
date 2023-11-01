@@ -94,12 +94,13 @@ std::optional<QPoint> lineIntersection(const QPoint& p1, const QPoint& p2, const
 
 QPair<QPoint, QPoint> offsetSegment(const QPoint& p1, const QPoint& p2, const int& offset)
 {
-    const QPoint A = p2 - p1 == QPoint(0, 0) ? QPoint(1, 1) : p2 - p1;
+    const QPoint A = p2 - p1;
+    if (A == QPoint(0, 0)) { return qMakePair(p1, p2); }
     QPoint P(A.y(), -A.x());
     const float len = qSqrt(P.x() * P.x() + P.y() * P.y());
     P.rx() = (offset * P.x()) / len;
     P.ry() = (offset * P.y()) / len;
-    return QPair<QPoint, QPoint>(p1 + P, p2 + P);
+    return qMakePair(p1 + P, p2 + P);
 }
 
 bool polygonSign(const QVector<QPoint>& points)
@@ -131,3 +132,14 @@ bool polygonSign(const QVector<QPoint>& points)
     const QPoint& C = points.at((i + 1) % n);
     return (B.x() - A.x()) * (C.y() - A.y()) - (C.x() - A.x()) * (B.y() - A.y()) > 0;
 }
+
+QPoint adjustDistance(const QPoint &P, const QPoint &oP, const int &offset)
+{
+    const QPoint v = oP - P;
+    if (v == QPoint(0, 0)) { return oP; }
+    const float len = qSqrt(v.x() * v.x() + v.y() * v.y());
+    const int x = (offset * v.x()) / len;
+    const int y = (offset * v.y()) / len;
+    return QPoint(P.x() + x, P.y() + y);
+}
+

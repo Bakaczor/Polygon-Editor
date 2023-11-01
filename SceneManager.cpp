@@ -24,14 +24,14 @@ SceneManager::SceneManager(QObject* parent) :
         painter.clear();
         delete image;
     });
-    image->fill(m_background);
+    image->fill(s_background);
     painter = QSharedPointer<QPainter>(new QPainter(image.get()));
 }
 
 void SceneManager::paint()
 {
     // refresh image
-    image->fill(m_background);
+    image->fill(s_background);
 
     // draw the polyline
     if (!polyline.empty())
@@ -85,7 +85,7 @@ void SceneManager::addVertex(int x, int y)
     emit imageChanged();
 }
 
-void SceneManager::stopBuilding(int x, int y)
+void SceneManager::stopBuilding()
 {
     if (polyline.isEmpty()) { return; }
     m_isBuilding = false;
@@ -197,7 +197,7 @@ void SceneManager::changeOrientation(Orientation::Enum orient)
         if (edges[peIdx].getOrientation() == orient || edges[neIdx].getOrientation() == orient) { return; }
     }
     polygons[currPolIdx].edges[currEdgIdx].setOrientation(orient);
-    polygons[currPolIdx].updateOffset(-1);
+    polygons[currPolIdx].updateOffset();
 
     paint();
     emit imageChanged();

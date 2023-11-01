@@ -1,7 +1,5 @@
 #include <QtConcurrent/QtConcurrent>
 
-//#include "earcut.hpp"
-
 #include "Polygon.h"
 #include "Geometry.h"
 
@@ -30,7 +28,7 @@ void Polygon::drag(int dx, int dy)
         pv->X += dx;
         pv->Y += dy;
     });
-    updateOffset(m_offset);
+    updateOffset();
 }
 
 void Polygon::paint(QSharedPointer<QPainter> painter, const Algorithm::Enum& type) const
@@ -99,7 +97,7 @@ void Polygon::insertVertex(int x, int y, int eIdx)
     edges.insert(eIdx, pe);
     edges.insert(eIdx + 1, ne);
 
-    updateOffset(m_offset);
+    updateOffset();
 }
 
 bool Polygon::removeVertex(int vIdx)
@@ -120,7 +118,7 @@ bool Polygon::removeVertex(int vIdx)
     vertices.removeAt(vIdx);
     edges.removeAt(vIdx);
 
-    updateOffset(m_offset);
+    updateOffset();
     return true;
 }
 
@@ -186,7 +184,7 @@ void Polygon::dragVertex(int x, int y, int currVerIdx)
     }
 
     vertices[currVerIdx]->drag(x, y);
-    updateOffset(m_offset);
+    updateOffset();
 }
 
 void Polygon::dragEdge(int dx, int dy, int currEdgIdx)
@@ -225,16 +223,11 @@ void Polygon::dragEdge(int dx, int dy, int currEdgIdx)
     {
         vertices[nvIdx]->drag(vertices.at(cnvIdx)->X, vertices.at(nvIdx)->Y);
     }
-    updateOffset(m_offset);
+    updateOffset();
 }
 
 void Polygon::updateOffset(int offset)
 {
-    if (offset < 0)
-    {
-        offset = m_offset;
-    }
-
     QVector<QPoint> points;
     points.reserve(vertices.count());
     for (const auto& pv : vertices)
@@ -242,24 +235,16 @@ void Polygon::updateOffset(int offset)
         points.append(static_cast<QPoint>(*pv));
     }
 
-    if (!polygonSign(points))
+    if (offset != 101)
     {
-        offset = -offset;
+        if (polygonSign(points))
+        {
+            m_offset = offset;
+        }
+        else
+        {
+            m_offset = -offset;
+        }
     }
-
-    m_offsetPoly.update(points, offset);
-    m_offset = offset;
+    m_offsetPoly.update(points, m_offset);
 }
-
-/*
-    using Point = std::array<int, 2>;
-    std::vector<Point> polyline;
-    polyline.reserve(vertices.count());
-    for (const auto& pv : vertices)
-    {
-        polyline.push_back({pv->X, pv->Y});
-    }
-    std::vector<std::vector<Point>> polygon;
-    polygon.push_back(polyline);
-    std::vector<int> indices = mapbox::earcut<int>(polygon);
-*/

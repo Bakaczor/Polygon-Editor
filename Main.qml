@@ -91,7 +91,7 @@ ApplicationWindow {
                         if (mouseArea.pressedButtons == Qt.LeftButton) {
                            SceneManager.addVertex(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
                         } else if (mouseArea.pressedButtons == Qt.RightButton && SceneManager.isBuilding) {
-                           SceneManager.stopBuilding(mouseArea.mouseX + offset, mouseArea.mouseY + offset)
+                           SceneManager.stopBuilding()
                         }
                    }
                    onPositionChanged:
@@ -170,14 +170,14 @@ ApplicationWindow {
                     Column {
                         spacing: 5
                         Label {
-                            text: "Offset polygon:"
+                            text: "Change offset polygon:"
                         }
                         Slider {
                             id: slider
-                            implicitWidth: 150
+                            implicitWidth: 120
                             from: 0
                             value: 0
-                            to: 50
+                            to: 30
                             stepSize: 1
                             snapMode: Slider.SnapAlways
                             focusPolicy: Qt.NoFocus

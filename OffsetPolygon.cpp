@@ -5,7 +5,6 @@
 #include "Functions.h"
 #include "Geometry.h"
 #include "OffsetPolygon.h"
-#include "qdebug.h"
 
 OffsetPolygon::OffsetPolygon(const QVector<QPoint> &points, const int &offset)
 {
@@ -22,7 +21,7 @@ void OffsetPolygon::paint(QSharedPointer<QPainter> painter, const Algorithm::Enu
     //drawBack(painter, m_polygon, s_color);
     for (uint i = 0; i < m_polygon.count() - 1; i++)
     {
-        drawLine(painter, m_polygon.at(i), m_polygon.at(i + 1), type, s_thicc, s_color);
+       drawLine(painter, m_polygon.at(i), m_polygon.at(i + 1), type, s_thicc, s_color);
     }
     drawLine(painter, m_polygon.constLast(), m_polygon.constFirst(), type, s_thicc, s_color);
     for (const QVector<QPoint>& poly : m_loops)
@@ -36,27 +35,26 @@ void OffsetPolygon::paint(QSharedPointer<QPainter> painter, const Algorithm::Enu
     }
 }
 
-void OffsetPolygon::update(const QVector<QPoint> &points, const int &offset)
+void OffsetPolygon::update(const QVector<QPoint>& points, const int &offset)
 {
     m_polygon.clear();
     m_loops.clear();
     if (offset == 0) { return; }
-    QVector<QPair<QPoint, QPoint>> segments = generateOffsetSegments(points, offset);
-    /*
     QVector<QPoint> baseIntersections;
-    for (const QPair<QPoint, QPoint>& seg : segments)
+    if (offset <= s_pointError)
     {
-        baseIntersections.append(seg.first);
-        baseIntersections.append(seg.second);
+        baseIntersections = points;
     }
-    */
-    QVector<QPoint> baseIntersections = calculateBaseIntersections(segments);
-    QVector<QPair<QPoint, bool>> allIntersections = calculateAllIntersections(baseIntersections);
+    else
+    {
+        baseIntersections = calculateIntersections(points, offset);
+    }
+    QVector<QPair<QPoint, bool>> allIntersections = addSelfIntersections(baseIntersections);
     m_loops = removeNeedlessAndGetLoops(allIntersections);
-    m_polygon = removeCollinearAndDoubles(allIntersections);
+    m_polygon = removeDoublesAndCollinear(allIntersections);
 }
 
-QVector<QPair<QPoint, QPoint> > generateOffsetSegments(const QVector<QPoint>& points, const int& offset)
+QVector<QPoint> calculateIntersections(const QVector<QPoint>& points, const int& offset)
 {
     QVector<QPair<QPoint, QPoint>> segments;
     segments.reserve(points.count());
@@ -65,20 +63,14 @@ QVector<QPair<QPoint, QPoint> > generateOffsetSegments(const QVector<QPoint>& po
         segments.append(offsetSegment(points.at(i), points.at(i + 1), offset));
     }
     segments.append(offsetSegment(points.constLast(), points.constFirst(), offset));
-    /*
-    qDebug() << "S";
-    for(auto el : segments)
-    {
-        qDebug() << el << "\n";
-    }
-    */
-    return segments;
-}
 
-QVector<QPoint> calculateBaseIntersections(const QVector<QPair<QPoint, QPoint> > &segments)
-{
     QVector<QPoint> baseIntersections;
     baseIntersections.reserve(segments.count());
+    std::optional<QPoint> opt = lineIntersection(segments.constLast().first, segments.constLast().second, segments.constFirst().first, segments.constFirst().second);
+    if (opt.has_value())
+    {
+        baseIntersections.append(opt.value());
+    }
     for (uint i = 0; i < segments.count() - 1; i++)
     {
         std::optional<QPoint> opt = lineIntersection(segments.at(i).first, segments.at(i).second, segments.at(i + 1).first, segments.at(i + 1).second);
@@ -87,23 +79,10 @@ QVector<QPoint> calculateBaseIntersections(const QVector<QPair<QPoint, QPoint> >
             baseIntersections.append(opt.value());
         }
     }
-    std::optional<QPoint> opt = lineIntersection(segments.constLast().first, segments.constLast().second, segments.constFirst().first, segments.constFirst().second);
-    if (opt.has_value())
-    {
-        baseIntersections.append(opt.value());
-    }
-    /*
-    qDebug() << "BI";
-    for(auto el : baseIntersections)
-    {
-        qDebug() << el;
-    }
-    qDebug() << "\n";
-    */
     return baseIntersections;
 }
 
-QVector<QPair<QPoint, bool> > calculateAllIntersections(const QVector<QPoint>& baseIntersections)
+QVector<QPair<QPoint, bool>> addSelfIntersections(const QVector<QPoint>& baseIntersections)
 {
     uint n = baseIntersections.count();
     QVector<QPair<QPoint, bool>> allIntersections;
@@ -142,27 +121,18 @@ QVector<QPair<QPoint, bool> > calculateAllIntersections(const QVector<QPoint>& b
             allIntersections.append(qMakePair(p, true));
         }
     }
-    /*
-    qDebug() << "AI";
-    for(auto el : allIntersections)
-    {
-        qDebug() << el;
-    }
-    qDebug() << "\n";
-    */
     return allIntersections;
 }
 
 QVector<QVector<QPoint>> removeNeedlessAndGetLoops(QVector<QPair<QPoint, bool>>& allIntersections)
 {
     const auto equal = [](const QPoint& p1, const QPoint& p2) {
-        return qFabs(p1.x() - p2.x()) < OffsetPolygon::s_margin
-               && qFabs(p1.y() - p2.y()) < OffsetPolygon::s_margin;
+        return qFabs(p1.x() - p2.x()) < OffsetPolygon::s_pointError && qFabs(p1.y() - p2.y()) < OffsetPolygon::s_pointError;
     };
-    QVector<QVector<QPoint>> loops;
-    QVector<bool> toTake(allIntersections.count(), true);
-    QStack<QPair<QPoint, uint>> stack;
     uint n = allIntersections.count();
+    QVector<QVector<QPoint>> loops;
+    QVector<bool> toTake(n, true);
+    QStack<QPair<QPoint, uint>> stack;
     bool flag = true;
     uint i = 0;
     for (const QPair<QPoint, bool>& pair : allIntersections)
@@ -193,8 +163,11 @@ QVector<QVector<QPoint>> removeNeedlessAndGetLoops(QVector<QPair<QPoint, bool>>&
                         QVector<QPoint> loop;
                         for (uint j = top.second; j < i; j++)
                         {
-                            loop.append(allIntersections.at(j).first);
-                            toTake[j] = false;
+                            if (toTake[j])
+                            {
+                                loop.append(allIntersections.at(j).first);
+                                toTake[j] = false;
+                            }
                         }
                         loops.append(loop);
 
@@ -202,7 +175,7 @@ QVector<QVector<QPoint>> removeNeedlessAndGetLoops(QVector<QPair<QPoint, bool>>&
                         const QPoint& iP = pair.first;
                         const QPoint& niP = allIntersections.at((i + 1) % n).first;
                         const QPoint& nniP = allIntersections.at((i + 2) % n).first;
-                        if (cross2D(iP - niP, iP - nniP) == 0)
+                        if (qFabs(cross2D(iP - niP, nniP - niP)) < OffsetPolygon::s_crossError)
                         {
                             toTake[(i + 1) % n] = false;
                         }
@@ -237,60 +210,52 @@ QVector<QVector<QPoint>> removeNeedlessAndGetLoops(QVector<QPair<QPoint, bool>>&
         }
     }
     allIntersections = taken;
-    qDebug() << "L" << loops.count();
-    for(auto& el : loops)
-    {
-        for(auto ell : el)
-        {
-            qDebug() << el;
-        }
-        qDebug() << "\n";
-    }
-    qDebug() << "\n";
     return loops;
 }
 
-QVector<QPoint> removeCollinearAndDoubles(const QVector<QPair<QPoint, bool>>& allIntersections)
+QVector<QPoint> removeDoublesAndCollinear(const QVector<QPair<QPoint, bool>>& allIntersections)
 {
-    QVector<QPoint> mainLoop;
+    const auto equal = [](const QPoint& p1, const QPoint& p2) {
+        return qFabs(p1.x() - p2.x()) < OffsetPolygon::s_pointError && qFabs(p1.y() - p2.y()) < OffsetPolygon::s_pointError;
+    };
+
+    QVector<QPoint> unique;
     uint n = allIntersections.count();
     uint i = 0;
-    //  najpierw usuń duble, potem trójki cross2D
     while (i < n)
     {
-        if (allIntersections.at(i).second)
+        unique.append(allIntersections.at(i).first);
+        uint ni = (i + 1) % n;
+        if (equal(allIntersections.at(i).first, allIntersections.at(ni).first))
         {
-            uint ni = (i + 1) % n;
-            if (qFabs(allIntersections.at(i).first.x() - allIntersections.at(ni).first.x()) < OffsetPolygon::s_margin &&
-                qFabs(allIntersections.at(i).first.y() - allIntersections.at(ni).first.y()) < OffsetPolygon::s_margin)
-            {
-                mainLoop.append(allIntersections.at(i).first);
-                i += 2;
-            }
-            else
-            {
-                uint nni = (i + 2) % n;
-                const QPoint BA = allIntersections.at(i).first - allIntersections.at(ni).first;
-                const QPoint BC = allIntersections.at(nni).first - allIntersections.at(ni).first;
-                if (cross2D(BA, BC) != 0)
-                {
-                    mainLoop.append(allIntersections.at(i).first);
-                    mainLoop.append(allIntersections.at(ni).first);
-                }
-                i += 2;
-            }
+            // skip double
+            i += 2;
         }
         else
         {
-            mainLoop.append(allIntersections.at(i).first);
             i += 1;
         }
     }
-    qDebug() << "ML";
-    for(auto el : mainLoop)
+
+    QVector<QPoint> mainLoop;
+    n = unique.count();
+    i = 0;
+    while (i < n)
     {
-        qDebug() << el;
+        mainLoop.append(unique.at(i));
+        uint ni = (i + 1) % n;
+        uint nni = (i + 2) % n;
+        const QPoint p2p1 = unique.at(i) - unique.at(ni);
+        const QPoint p2p3 = unique.at(nni) - unique.at(ni);
+        if (qFabs(cross2D(p2p1, p2p3)) < OffsetPolygon::s_crossError)
+        {
+            // skip collinear
+            i += 2;
+        }
+        else
+        {
+            i += 1;
+        }
     }
-    qDebug() << "\n";
     return mainLoop;
 }
