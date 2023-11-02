@@ -1,4 +1,4 @@
-#include <QPainter>
+#pragma once
 
 #include "Edge.h"
 #include "OffsetPolygon.h"

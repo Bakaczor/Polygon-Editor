@@ -1,6 +1,5 @@
 #include <QtConcurrent/QtConcurrent>
 #include <QImage>
-#include <QPainter>
 
 #include "SceneManager.h"
 #include "Functions.h"

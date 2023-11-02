@@ -6,7 +6,7 @@
 #include "Geometry.h"
 #include "OffsetPolygon.h"
 
-OffsetPolygon::OffsetPolygon(const QVector<QPoint> &points, const int &offset)
+OffsetPolygon::OffsetPolygon(const QVector<QPoint>& points, const int& offset)
 {
     m_polygon = QVector<QPoint>();
     m_loops = QVector<QVector<QPoint>>();
@@ -16,7 +16,7 @@ OffsetPolygon::OffsetPolygon(const QVector<QPoint> &points, const int &offset)
     }
 }
 
-void OffsetPolygon::paint(QSharedPointer<QPainter> painter, const Algorithm::Enum &type) const
+void OffsetPolygon::paint(QSharedPointer<QPainter> painter, const Algorithm::Enum& type) const
 {
     //drawBack(painter, m_polygon, s_color);
     for (uint i = 0; i < m_polygon.count() - 1; i++)
@@ -35,20 +35,12 @@ void OffsetPolygon::paint(QSharedPointer<QPainter> painter, const Algorithm::Enu
     }
 }
 
-void OffsetPolygon::update(const QVector<QPoint>& points, const int &offset)
+void OffsetPolygon::update(const QVector<QPoint>& points, const int& offset)
 {
     m_polygon.clear();
     m_loops.clear();
     if (offset == 0) { return; }
-    QVector<QPoint> baseIntersections;
-    if (offset <= s_pointError)
-    {
-        baseIntersections = points;
-    }
-    else
-    {
-        baseIntersections = calculateIntersections(points, offset);
-    }
+    QVector<QPoint> baseIntersections = calculateIntersections(points, offset);
     QVector<QPair<QPoint, bool>> allIntersections = addSelfIntersections(baseIntersections);
     m_loops = removeNeedlessAndGetLoops(allIntersections);
     m_polygon = removeDoublesAndCollinear(allIntersections);

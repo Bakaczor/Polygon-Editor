@@ -1,7 +1,7 @@
-#include <QPainter>
+#pragma once
 
 #include "Vertex.h"
-#include "Functions.h"
+#include "Enums.h"
 
 /*!
  * \brief The Edge class

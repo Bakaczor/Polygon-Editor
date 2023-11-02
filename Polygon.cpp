@@ -1,5 +1,6 @@
 #include <QtConcurrent/QtConcurrent>
 
+#include "Functions.h"
 #include "Polygon.h"
 #include "Geometry.h"
 

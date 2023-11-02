@@ -1,4 +1,3 @@
-#include <QImage>
 #include <QPainter>
 
 #include "Icon.h"

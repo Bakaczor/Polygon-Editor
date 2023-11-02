@@ -5,7 +5,6 @@
 
 #include "SceneManager.h"
 #include "ImageProvider.h"
-#include "Enums.h"
 
 int main(int argc, char *argv[])
 {
@@ -26,11 +25,84 @@ int main(int argc, char *argv[])
         Qt::QueuedConnection);
     engine.loadFromModule("Polygon-Editor", "Main");
 
-    manager->addVertex(100, 100);
-    manager->addVertex(200, 100);
-    manager->addVertex(200, 200);
-    manager->addVertex(100, 200);
-    manager->addVertex(100, 100);
+    // build K
+    manager->addVertex(75, 50);
+    manager->addVertex(150, 50);
+    manager->addVertex(150, 200);
+    manager->addVertex(250, 50);
+    manager->addVertex(350, 50);
+    manager->addVertex(200, 250);
+    manager->addVertex(350, 450);
+    manager->addVertex(250, 450);
+    manager->addVertex(150, 300);
+    manager->addVertex(150, 450);
+    manager->addVertex(75, 450);
+    manager->addVertex(75, 50);
+
+    manager->currPolIdx = 0;
+    manager->currObject = Geometry::Edge;
+
+    manager->currEdgIdx = 0;
+    manager->changeOrientation(Orientation::Enum::Horizontal);
+    manager->currEdgIdx = 1;
+    manager->changeOrientation(Orientation::Enum::Vertical);
+    manager->currEdgIdx = 3;
+    manager->changeOrientation(Orientation::Enum::Horizontal);
+    manager->currEdgIdx = 6;
+    manager->changeOrientation(Orientation::Enum::Horizontal);
+    manager->currEdgIdx = 8;
+    manager->changeOrientation(Orientation::Enum::Vertical);
+    manager->currEdgIdx = 9;
+    manager->changeOrientation(Orientation::Enum::Horizontal);
+    manager->currEdgIdx = 10;
+    manager->changeOrientation(Orientation::Enum::Vertical);
+
+    // build benchmark
+    manager->addVertex(400, 250);
+    manager->addVertex(750, 250);
+    manager->addVertex(750, 600);
+    manager->addVertex(590, 600);
+    manager->addVertex(590, 425);
+    manager->addVertex(650, 425);
+    manager->addVertex(650, 350);
+    manager->addVertex(500, 350);
+    manager->addVertex(500, 475);
+    manager->addVertex(560, 475);
+    manager->addVertex(560, 550);
+    manager->addVertex(400, 550);
+    manager->addVertex(400, 250);
+
+    manager->currPolIdx = 1;
+    manager->currObject = Geometry::Edge;
+
+    manager->currEdgIdx = 0;
+    manager->changeOrientation(Orientation::Enum::Horizontal);
+    manager->currEdgIdx = 1;
+    manager->changeOrientation(Orientation::Enum::Vertical);
+    manager->currEdgIdx = 2;
+    manager->changeOrientation(Orientation::Enum::Horizontal);
+    manager->currEdgIdx = 3;
+    manager->changeOrientation(Orientation::Enum::Vertical);
+    manager->currEdgIdx = 4;
+    manager->changeOrientation(Orientation::Enum::Horizontal);
+    manager->currEdgIdx = 5;
+    manager->changeOrientation(Orientation::Enum::Vertical);
+    manager->currEdgIdx = 6;
+    manager->changeOrientation(Orientation::Enum::Horizontal);
+    manager->currEdgIdx = 7;
+    manager->changeOrientation(Orientation::Enum::Vertical);
+    manager->currEdgIdx = 8;
+    manager->changeOrientation(Orientation::Enum::Horizontal);
+    manager->currEdgIdx = 9;
+    manager->changeOrientation(Orientation::Enum::Vertical);
+    manager->currEdgIdx = 10;
+    manager->changeOrientation(Orientation::Enum::Horizontal);
+    manager->currEdgIdx = 11;
+    manager->changeOrientation(Orientation::Enum::Vertical);
+
+    manager->currEdgIdx = -1;
+    manager->currPolIdx = -1;
+    manager->currObject = Geometry::None;
 
     return app.exec();
 }

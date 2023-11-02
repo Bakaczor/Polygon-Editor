@@ -1,7 +1,6 @@
-#include <QtMath>
-
 #include "Edge.h"
 #include "Icon.h"
+#include "Functions.h"
 
 Edge::Edge(Vertex* v1, Vertex* v2) : first(v1), second(v2), m_orient(Orientation::Enum::None), thicc(2), color(QColor(0, 0, 0, 255)) {}
 

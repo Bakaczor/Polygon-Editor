@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.20)
 
 project(Polygon-Editor VERSION 0.1 LANGUAGES CXX)
 
@@ -28,7 +28,6 @@ qt_add_qml_module(appPolygon-Editor
     SOURCES Edge.cpp Edge.h Enums.h Functions.cpp Functions.h Icon.cpp Icon.h ImageProvider.cpp ImageProvider.h Polygon.cpp Polygon.h SceneManager.cpp SceneManager.h Vertex.cpp Vertex.h
     SOURCES Geometry.h
     SOURCES Geometry.cpp
-    SOURCES
     SOURCES OffsetPolygon.h
     SOURCES OffsetPolygon.cpp
 )
@@ -62,3 +61,10 @@ install(TARGETS appPolygon-Editor
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+
+qt_generate_deploy_qml_app_script(
+    TARGET appPolygon-Editor
+    OUTPUT_SCRIPT deploy_script
+    NO_UNSUPPORTED_PLATFORM_ERROR
+)
+install(SCRIPT ${deploy_script})

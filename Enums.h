@@ -1,5 +1,4 @@
-#ifndef ENUMS_H
-#define ENUMS_H
+#pragma once
 
 #include <QObject>
 
@@ -41,5 +40,3 @@ enum class Geometry
 {
     Polygon, Edge, Vertex, None
 };
-
-#endif

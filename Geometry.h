@@ -1,6 +1,7 @@
+#pragma once
+
 #include <QPoint>
 #include <QtMath>
-
 #include <optional>
 
 /*!

@@ -127,9 +127,9 @@ bool polygonSign(const QVector<QPoint>& points)
             }
         }
     }
-    const QPoint& A = points.at((i - 1) % n);
+    const QPoint& A = points.at(i == 0 ? n - 1 : i - 1);
     const QPoint& B = points.at(i);
-    const QPoint& C = points.at((i + 1) % n);
+    const QPoint& C = points.at(i == n - 1 ? 0 : i + 1);
     return (B.x() - A.x()) * (C.y() - A.y()) - (C.x() - A.x()) * (B.y() - A.y()) > 0;
 }
 
