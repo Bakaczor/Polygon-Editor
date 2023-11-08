@@ -67,3 +67,5 @@ CMakeLists.txt.user*
 # Python byte code
 *.pyc
 
+# Custom
+/build-src-Desktop_Qt_6_6_0_MinGW_64_bit-Debug
