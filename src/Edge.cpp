@@ -2,7 +2,10 @@
 #include "Icon.h"
 #include "Functions.h"
 
-Edge::Edge(Vertex* v1, Vertex* v2) : first(v1), second(v2), m_orient(Orientation::Enum::None), thicc(2), color(QColor(0, 0, 0, 255)) {}
+Edge::Edge(Vertex* v1, Vertex* v2, Orientation::Enum orient) :
+    first(v1), second(v2),
+    m_orient(orient), m_softOrient(orient),
+    thicc(2), color(QColor(0, 0, 0, 255)) {}
 
 void Edge::drag(int dx, int dy)
 {
@@ -20,6 +23,14 @@ void Edge::paint(QSharedPointer<QPainter> painter, const Algorithm::Enum& type) 
         Icon i;
         i.setPosition(getMiddle());
         i.setSource(m_orient);
+        i.paint(painter.get());
+    }
+    // new functionality
+    else if (m_softOrient != Orientation::Enum::None)
+    {
+        Icon i;
+        i.setPosition(getMiddle());
+        i.setSource(m_softOrient);
         i.paint(painter.get());
     }
 }
@@ -104,6 +115,16 @@ bool Edge::contains(const QPoint& p) const
     int dy = p.y() - yy;
 
     return dx * dx + dy * dy < s_margin * s_margin;
+}
+
+Orientation::Enum Edge::getSoftOrientation() const
+{
+    return m_softOrient;
+}
+
+void Edge::setSoftOrientation(Orientation::Enum newOrientation)
+{
+    m_softOrient = newOrientation;
 }
 
 QPoint Edge::getMiddle() const

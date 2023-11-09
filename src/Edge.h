@@ -20,7 +20,7 @@ public:
      * \param v1 The first vertex of the edge
      * \param v2 The second vertex of the edge
      */
-    Edge(Vertex* v1, Vertex* v2);
+    Edge(Vertex* v1, Vertex* v2, Orientation::Enum orient = Orientation::Enum::None);
 
     /*!
      * \brief Moves the edge by a specified amount
@@ -75,8 +75,14 @@ public:
      */
     friend bool operator==(const Edge& e1, const Edge& e2);
 
+
+    // new functionality
+    Orientation::Enum getSoftOrientation() const;
+    void setSoftOrientation(Orientation::Enum newOrientation);
+
 private:
     Orientation::Enum m_orient;
+    Orientation::Enum m_softOrient;
 
     /*!
      * \brief Gets the middle point of the edge

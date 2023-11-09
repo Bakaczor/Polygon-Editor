@@ -20,6 +20,7 @@ class SceneManager : public QObject
         QSize size;
 
         QVector<Vertex> polyline;
+        QVector<Orientation::Enum> polylineOrientations;
         QVector<Polygon> polygons;
 
         Geometry currObject;
@@ -55,6 +56,14 @@ class SceneManager : public QObject
          * \return The type of the line drawing algorithm
          */
         Algorithm::Enum type() const;
+
+        // new functionality
+        inline QPoint getMiddle(const QPoint& p1, const QPoint& p2) const
+        {
+            const int dx = (p2.x() - p1.x()) >> 1;
+            const int dy = (p2.y()- p1.y()) >> 1;
+            return QPoint(p1.x() + dx, p1.y() + dy);
+        }
 
     public slots:
         /*!
@@ -141,6 +150,9 @@ class SceneManager : public QObject
          */
         void updateOffset(uint offset);
 
+        // new functionality
+        void changeAutomaticOrientation();
+
     signals:
         void imageChanged();
         void isBuildingChanged();
@@ -153,5 +165,6 @@ class SceneManager : public QObject
 
         bool m_isBuilding;
         bool m_isDragging;
+        bool m_automaticOrientation;
         Algorithm::Enum m_type;
 };

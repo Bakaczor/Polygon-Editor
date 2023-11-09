@@ -17,7 +17,7 @@ class Polygon
          * \brief Constructs a Polygon object
          * \param verts A vector of vertices that define the polygon
          */
-        Polygon(QVector<Vertex> verts);
+        Polygon(QVector<Vertex> verts, QVector<Orientation::Enum> orients = {});
 
         /*!
          * \brief Moves the polygon by a specified amount

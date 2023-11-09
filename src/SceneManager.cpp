@@ -3,11 +3,13 @@
 
 #include "SceneManager.h"
 #include "Functions.h"
+#include "Icon.h"
 
 SceneManager::SceneManager(QObject* parent) :
     QObject(parent),
     m_isBuilding(false),
     m_isDragging(false),
+    m_automaticOrientation(false),
     m_type(Algorithm::Enum::Library),
     lastPosition(0, 0),
     size(QSize(800, 800)),
@@ -41,6 +43,15 @@ void SceneManager::paint()
             const Vertex& v1 = polyline.at(i - 1);
             const Vertex& v2 = polyline.at(i);
             drawLine(painter, QPoint(v1.X, v1.Y), QPoint(v2.X, v2.Y), m_type, 2, QColor(0, 0, 0, 255));
+
+            // new functionality
+            if (m_automaticOrientation && !polylineOrientations.empty())
+            {
+                Icon icon;
+                icon.setPosition(getMiddle(v1, v2));
+                icon.setSource(polylineOrientations.at(i - 1));
+                icon.paint(painter.get());
+            }
             v2.paint(painter);
         }
     }
@@ -58,7 +69,39 @@ void SceneManager::paint()
 void SceneManager::drawProjection(int x, int y)
 {
     paint();
-    drawLine(painter, lastPosition, QPoint(x, y), m_type, 2, QColor(0, 0, 0, 255));
+
+    // new functionality
+    if (m_automaticOrientation)
+    {
+        const int margin = 5;
+        int dx = qFabs(lastPosition.x() - x);
+        int dy = qFabs(lastPosition.y() - y);
+        QPoint mid = getMiddle(lastPosition, QPoint(x, y));
+        if (dx <= margin)
+        {
+            Icon icon;
+            icon.setPosition(mid);
+            icon.setSource(Orientation::Enum::Vertical);
+            icon.paint(painter.get());
+            drawLine(painter, QPoint(mid.x(), lastPosition.y()), QPoint(mid.x(), y), m_type, 2, QColor(0, 0, 0, 255));
+        }
+        else if (dy <= margin)
+        {
+            Icon icon;
+            icon.setPosition(mid);
+            icon.setSource(Orientation::Enum::Horizontal);
+            icon.paint(painter.get());
+            drawLine(painter, QPoint(lastPosition.x(), mid.y()), QPoint(x, mid.y()), m_type, 2, QColor(0, 0, 0, 255));
+        }
+        else
+        {
+            drawLine(painter, lastPosition, QPoint(x, y), m_type, 2, QColor(0, 0, 0, 255));
+        }
+    }
+    else
+    {
+        drawLine(painter, lastPosition, QPoint(x, y), m_type, 2, QColor(0, 0, 0, 255));
+    }
     emit imageChanged();
 }
 
@@ -67,10 +110,43 @@ void SceneManager::addVertex(int x, int y)
     lastPosition = QPoint(x, y);
 
     Vertex v(x, y);
+
+    // new functionality
+    if (m_automaticOrientation && !polyline.empty())
+    {
+        const int margin = 5;
+        const Vertex& pv = polyline.constLast();
+        int dx = qFabs(v.X - pv.X);
+        int dy = qFabs(v.Y - pv.Y);
+        if (dx <= margin)
+        {
+            polylineOrientations.append(Orientation::Enum::Vertical);
+            v.X = pv.X + (pv.X - v.X) / 2;
+        }
+        else if (dy <= margin)
+        {
+            polylineOrientations.append(Orientation::Enum::Horizontal);
+            v.Y = pv.Y + (pv.Y - v.Y) / 2;
+        }
+        else
+        {
+            polylineOrientations.append(Orientation::Enum::None);
+        }
+    }
+
     if (polyline.count() >= 3 && v == polyline.at(0))
     {
-        Polygon p(polyline);
-        polygons.append(p);
+        // new functionality
+        if (m_automaticOrientation && !polyline.empty())
+        {
+            Polygon p(polyline, polylineOrientations);
+            polygons.append(p);
+        }
+        else
+        {
+            Polygon p(polyline);
+            polygons.append(p);
+        }
         polyline.clear();
         m_isBuilding = false;
     }
@@ -164,6 +240,50 @@ void SceneManager::moveObject(int x, int y)
         case Geometry::Vertex:
         {
             polygons[currPolIdx].dragVertex(x, y, currVerIdx);
+            // new functionality
+            if (m_automaticOrientation)
+            {
+                const int margin = 5;
+                QVector<Edge>& edges = polygons[currPolIdx].edges;
+
+                int peIdx = currVerIdx == 0 ? edges.count() - 1 : currVerIdx - 1;
+                if (edges.at(peIdx).getOrientation() == Orientation::Enum::None)
+                {
+                    int dx = qFabs(edges.at(peIdx).first->X - edges.at(peIdx).second->X);
+                    int dy = qFabs(edges.at(peIdx).first->Y - edges.at(peIdx).second->Y);
+                    if (dx <= margin)
+                    {
+                        edges[peIdx].setSoftOrientation(Orientation::Enum::Vertical);
+                    }
+                    else if (dy <= margin)
+                    {
+                        edges[peIdx].setSoftOrientation(Orientation::Enum::Horizontal);
+                    }
+                    else
+                    {
+                        edges[peIdx].setSoftOrientation(Orientation::Enum::None);
+                    }
+                }
+
+                int neIdx = currVerIdx;
+                if (edges.at(neIdx).getOrientation() == Orientation::Enum::None)
+                {
+                    int dx = qFabs(edges.at(neIdx).first->X - edges.at(neIdx).second->X);
+                    int dy = qFabs(edges.at(neIdx).first->Y - edges.at(neIdx).second->Y);
+                    if (dx <= margin)
+                    {
+                        edges[neIdx].setSoftOrientation(Orientation::Enum::Vertical);
+                    }
+                    else if (dy <= margin)
+                    {
+                        edges[neIdx].setSoftOrientation(Orientation::Enum::Horizontal);
+                    }
+                    else
+                    {
+                        edges[neIdx].setSoftOrientation(Orientation::Enum::None);
+                    }
+                }
+            }
             break;
         }
         case Geometry::None: return;
@@ -183,6 +303,38 @@ void SceneManager::stopDragging(int x, int y)
 {
     lastPosition = QPoint(x, y);
     m_isDragging = false;
+
+    // new functionality
+    if (currObject == Geometry::Vertex)
+    {
+        if (currPolIdx != -1 && currVerIdx != -1)
+        {
+            bool repaint = false;
+            QVector<Edge>& edges = polygons[currPolIdx].edges;
+
+            int peIdx = currVerIdx == 0 ? edges.count() - 1 : currVerIdx - 1;
+            Orientation::Enum peOrient = edges.at(peIdx).getSoftOrientation();
+            if (peOrient != Orientation::Enum::None)
+            {
+                repaint = true;
+                edges[peIdx].setOrientation(peOrient);
+            }
+
+            int neIdx = currVerIdx;
+            Orientation::Enum neOrient = edges.at(neIdx).getSoftOrientation();
+            if (neOrient != Orientation::Enum::None)
+            {
+                repaint = true;
+                edges[neIdx].setOrientation(neOrient);
+            }
+
+            if (repaint)
+            {
+                paint();
+                emit imageChanged();
+            }
+        }
+    }
 }
 
 void SceneManager::changeOrientation(Orientation::Enum orient)
@@ -209,6 +361,11 @@ void SceneManager::updateOffset(uint offset)
 
     paint();
     emit imageChanged();
+}
+
+void SceneManager::changeAutomaticOrientation()
+{
+    m_automaticOrientation = !m_automaticOrientation;
 }
 
 void SceneManager::insertVertex(int x, int y)

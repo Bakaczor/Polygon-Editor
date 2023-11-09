@@ -55,7 +55,7 @@ void drawLibrary(QSharedPointer<QPainter> painter, const QPoint& p1, const QPoin
  */
 void drawBack(QSharedPointer<QPainter> painter, const QVector<QPoint>& points, const QColor& color);
 
-
+// THE REST IS UNUSED
 
 void drawSymmetricDoubleStep(QSharedPointer<QPainter> painter, const QPoint &p1, const QPoint &p2, const int& thicc, const QColor &color);
 

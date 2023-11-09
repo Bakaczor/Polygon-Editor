@@ -25,16 +25,6 @@ void drawLine(QSharedPointer<QPainter> painter, const QPoint& p1, const QPoint& 
             drawBresenham(painter, p1, p2, thicc, color);
             break;
         }
-        case Algorithm::Enum::SymmetricDoubleStep:
-        {
-            drawSymmetricDoubleStep(painter, p1, p2, thicc, color);
-            break;
-        }
-        case Algorithm::Enum::GuptaSproull:
-        {
-            drawGuptaSproull(painter, p1, p2, thicc, color);
-            break;
-        }
     }
 }
 
@@ -130,6 +120,8 @@ void drawBack(QSharedPointer<QPainter> painter, const QVector<QPoint>& points, c
     QPolygon poly(points);
     painter->drawPolygon(poly);
 }
+
+// THE REST IS UNUSED
 
 void drawSymmetricDoubleStep(QSharedPointer<QPainter> painter, const QPoint &p1, const QPoint &p2, const int& thicc, const QColor &color)
 {

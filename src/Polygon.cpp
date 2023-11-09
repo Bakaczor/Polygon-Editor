@@ -4,7 +4,7 @@
 #include "Polygon.h"
 #include "Geometry.h"
 
-Polygon::Polygon(QVector<Vertex> verts)
+Polygon::Polygon(QVector<Vertex> verts, QVector<Orientation::Enum> orients)
 {
     // add vertices
     for (const Vertex v : verts)
@@ -15,7 +15,14 @@ Polygon::Polygon(QVector<Vertex> verts)
     // create edges
     for (uint i = 0; i < vertices.count() - 1; i++)
     {
-        edges.append(Edge(vertices.at(i).get(), vertices.at(i + 1).get()));
+        if (!orients.empty())
+        {
+            edges.append(Edge(vertices.at(i).get(), vertices.at(i + 1).get(), orients.at(i)));
+        }
+        else
+        {
+            edges.append(Edge(vertices.at(i).get(), vertices.at(i + 1).get()));
+        }
     }
     edges.append(Edge(vertices.last().get(), vertices.first().get()));
 

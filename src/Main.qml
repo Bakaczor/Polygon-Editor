@@ -134,24 +134,6 @@ ApplicationWindow {
                             }
                             focusPolicy: Qt.NoFocus
                         }
-                        /*
-                        RadioButton {
-                            text: "SymmetricDoubleStep"
-                            onClicked: {
-                                SceneManager.setType(Algorithm.SymmetricDoubleStep)
-                            }
-                            focusPolicy: Qt.NoFocus
-                        }
-                        */
-                        /*
-                        RadioButton {
-                            text: "Gupta-Sproull"
-                            onClicked: {
-                                SceneManager.setType(Algorithm.GuptaSproull)
-                            }
-                            focusPolicy: Qt.NoFocus
-                        }
-                        */
                     }
                     Column {
                         focus: false
@@ -201,6 +183,15 @@ ApplicationWindow {
                             focusPolicy: Qt.NoFocus
                             onMoved: {
                                 SceneManager.updateOffset(slider.value)
+                            }
+                        }
+                    }
+                    Column {
+                        spacing: 5
+                        CheckBox {
+                            text: "Automatic relations"
+                            onClicked: {
+                                SceneManager.changeAutomaticOrientation();
                             }
                         }
                     }
