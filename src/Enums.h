@@ -13,7 +13,7 @@ public:
      * \brief The Algorithm enumeration
      * This enumeration represents different algorithms.
      */
-    enum class Enum { Library, Bresenham };
+    enum class Enum { Library, Bresenham, SymmetricDoubleStep, GuptaSproull };
     Q_ENUM(Enum)
 };
 
