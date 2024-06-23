@@ -1,104 +1,101 @@
 # Polygon Editor
-Polygon Editor to prosta aplikacja pozwalająca na tworzenie i edytowanie wielokątów. Program został zbudowany na Qt 6.5.0, w standardzie C++17.
+Polygon Editor is a simple application that allows for the creation and editing of polygons. The program is built on Qt 6.5.0, using the C++17 standard.
 
-# Klawiszologia
-W tej sekcji znajdują się informacje na temat korzystania z aplikacji.
+# Controls
+This section contains information on how to use the application.
 
-## Wielokąt
-### Tworzenie
-By zacząć budować wielokąt, należy podwójnie nacisnąć **lewy przycisk myszy**. W ten sposób można dodawać kolejne wierzchołki. By zakończyć budowanie, należy kliknąć podwójnie na pierwszy dodany wierzchołek. Jeżeli chcemy zrezygnować z budowania wielokąta wystarczy podwójnie kliknąć **prawy przycisk myszy**.
+## Polygon
+### Creation
+To start building a polygon, double-click the **left mouse button**. This way, you can add subsequent vertices. To finish building, double-click the first added vertex. If you want to cancel building the polygon, just double-click the **right mouse button**.
 
-### Przeciąganie
-By przeciągnąć wielokąt, należy nacisnąć w jego wnętrzu **prawym przyciskiem myszy** i nie odpuszczając przemieścić go w inne miejsce.
+### Dragging
+To drag the polygon, press the **right mouse button** inside the polygon and, without releasing it, move the polygon to a different location.
 
-### Usuwanie 
-By usunąć wielokąt należy go zaznaczyć kilkając w jego wnętrzu (zaświeci się na czerwono), a następnie użyć klawisza `Delete`.
+### Deleting
+To delete a polygon, select it by clicking inside it (it will light up red), then use the `Delete` key.
 
-## Krawędź
-### Przeciąganie
-By przeciągnąć krawędź, należy nacisnąć na nią **prawym przyciskiem myszy** i nie odpuszczając przemieścić ją w inne miejsce.
+## Edge
+### Dragging
+To drag an edge, press the **right mouse button** on it and, without releasing it, move it to a different location.
 
-### Zmiana orientacji
-By zmienić orientację krawędzi należy ją zaznaczyć poprzez kliknięcie (zaświeci się na czerwono), a następnie wybrać jedną z opcji dostępnych z lewej strony interfejsu:
-- `Horizontal` - krawędź stale pozioma
-- `Vertical` - krawędź stale pionowa
-- `None` - krawędź swobodna
+### Changing Orientation
+To change the orientation of an edge, select it by clicking (it will light up red), then choose one of the options available on the left side of the interface:
+- `Horizontal` - edge will remain horizontal
+- `Vertical` - edge will remain vertical
+- `None` - edge is free
 
-## Wierzchołek
-### Dodawanie
-By dodać nowy wierzchołek na jednej z krawędzi należy kliknąć na nią w wybranym miejscu **środkowym przyciskiem myszy** (kółkiem).
+## Vertex
+### Adding
+To add a new vertex to an edge, click on the desired spot on the edge with the **middle mouse button** (wheel).
 
-### Przeciąganie
-By przeciągnąć wierzchołek należy na niego nacisnąć **prawym przyciskiem myszy** i nie odpuszczając przemieścić go w inne miejsce.
+### Dragging
+To drag a vertex, press the **right mouse button** on it and, without releasing it, move it to a different location.
 
-### Usuwanie
-By usunąć wierzchołek należy go zaznaczyć klikając na niego (zaświeci się na czerwono), a następnie użyć klawisza `Delete`.
+### Deleting
+To delete a vertex, select it by clicking on it (it will light up red), then use the `Delete` key.
 
-## Wielokąt odsunięty
-By aktywować wielokąt odsunięty, należy zaznaczyć wielokąt poprzez kliknięcie w jego wnętrzu (zaświeci się na czerwono), a następnie wybrać wartość odsunięcia poprzez przeciągnięcie na suwaku po lewej stronie.
+## Offset Polygon
+To activate the offset polygon, select the polygon by clicking inside it (it will light up red), then choose the offset value by dragging the slider on the left side.
 
-# Opis algorytmów
-## Orientacja krawędzi
-### Algorytm
-1. W momencie, gdy użytkownik zmieni orientację krawędzi, sprawdzane jest czy krawędź jest zaznaczona i czy sąsiadujące krawędzie nie mają już ustawionej takiej samej orientacji.
-2. Jeżeli walidacja zakończona jest pozytywnie, orientacja krawędzi jest zmieniana, a ze współrzędnych jej wierzchołków (x-owych dla `Vertical`, y-owych dla `Horizontal`) wyliczana jest różnica, której połowa dodawana jest do pierwszego i odejmowana od drugiego wierzchołka (w efekcie oba znajdują się w punkcie będącym średnią arytmetyczną ze względu na daną współrzędną).
+# Algorithm Descriptions
+## Edge Orientation
+### Algorithm
+1. When the user changes the edge's orientation, it checks if the edge is selected and if the adjacent edges do not already have the same orientation.
+2. If the validation is positive, the edge's orientation is changed, and the difference in the coordinates of its vertices (x for `Vertical`, y for `Horizontal`) is calculated. Half of this difference is added to the first vertex and subtracted from the second vertex (resulting in both being at the arithmetic mean of the given coordinate).
 
-### Przeciąganie wierzchołków
-Jeżeli krawędź incydentna z przeciąganym wierzchołkiem ma ustawioną orientację, jej nieincydentny wierzchołek również jest przeciągany, ale tylko wzdłuż jednej z osi (OX dla `Vertical`, OY dla `Horizontal`).
+### Dragging Vertices
+If an edge incident to the dragged vertex has an orientation set, its non-incident vertex is also dragged, but only along one axis (OX for `Vertical`, OY for `Horizontal`).
 
-### Przeciąganie krawędzi
-Jeżeli krawędź incydentna z przeciąganą krawędzią ma ustawioną orientację, jej nieincydentny wierzchołek również jest przeciągany, ale tylko wzdłuż jednej z osi (OX dla `Vertical`, OY dla `Horizontal`).
+### Dragging Edges
+If an edge incident to the dragged edge has an orientation set, its non-incident vertex is also dragged, but only along one axis (OX for `Vertical`, OY for `Horizontal`).
 
-**Wyjątkiem** od tego jest przeciwprostokątna trójkąta prostokątnego - w takim wypadku przemieszczana jest cała figura.
+**Exception:** The hypotenuse of a right triangle - in this case, the entire figure is moved.
 
-## Wielokąt odsunięty
-### Algorytm
-1. Na samym początku sprawdzane jest skierowanie wielokąta (liczony jest iloczyn wektorowy dla wierzchołka o najmniejszych współrzędnych oraz jego sąsiadów). Jeżeli wielokąt zbudowany jest zgodnie z ruchem wskazówek zegara zmieniany jest znak offsetu na ujemny (przyjęta konwencja).
-2. Następnie wyliczane są odciniki odsunięte - dla każdej pary wierzchołków wyliczany jest wektor prostopadły, który następnie jest normowany do odpowiedniej długości. Wierzchołki odsunięte powstają poprzez przesunięcie wierzchołków wielokąta o ten wektor.
-3. Kolejnym krokiem jest wyliczenie przecięć prostych, które tworzone są przez sąsiadujące odcinki - rozwiązywany jest układ dwóch równań liniowych przy użyciu wzorów Cramera.
-4. W dalszej kolejności wyszukiwane są samoprzecięcia - każda krawędź jest sprawdzana ze wszystkimi nieincydentymi krawędziami w następujący sposób:
-   
+## Offset Polygon
+### Algorithm
+1. Initially, the orientation of the polygon is checked (the cross product is calculated for the vertex with the smallest coordinates and its neighbors). If the polygon is built clockwise, the offset sign is changed to negative (convention adopted).
+2. Next, the offset segments are calculated - for each pair of vertices, a perpendicular vector is calculated, which is then normalized to the appropriate length. Offset vertices are created by shifting the polygon's vertices by this vector.
+3. The next step is calculating the intersections of lines created by adjacent segments - a system of two linear equations is solved using Cramer's rule.
+4. Then, self-intersections are searched for - each edge is checked with all non-incident edges as follows:
+
     ```
-    1. Niech p1 i p2 będą wierzchołkami pierwszego odcinka, a p3 i p4 drugiego.
-    2. Przyjmijmy oznaczenia: p = p1, q = p3, r - wektor p1p2, s - wektor p3p4.
-    3. Niech r_s = r × s, jeżeli jest on równy zero, to wektory są równoległe.
-    4. Jeżeli nie: niech t = pq × s, zaś u = pq × r - oba podzielone przez r_s.
-    5. t i u są stosunkami wektorów wyznaczających punkt przecięcia do długości odcinków, zatem jeżeli oba znajdują się w przedziale [0, 1], to przecięcie istnieje i jest ono równe t * r (lub równoważnie u * s).
+    1. Let p1 and p2 be the vertices of the first segment, and p3 and p4 of the second.
+    2. Denote: p = p1, q = p3, r - vector p1p2, s - vector p3p4.
+    3. Let r_s = r × s, if it is zero, the vectors are parallel.
+    4. If not: let t = pq × s, and u = pq × r - both divided by r_s.
+    5. t and u are the ratios of vectors determining the intersection point to the lengths of the segments, so if both are in the range [0, 1], the intersection exists and is equal to t * r (or equivalently u * s).
     ```
 
-    Tak znalezione samoprzecięcia są sortowane według odległości od punktu p1 i wstawiane do ciągu wierzchołków.
-5. W kolejnym kroku wykonywane są równocześnie dwie operacje:
-   - Ilekroć natrafimy na samoprzecięcie zmieniamy to, czy dodajemy bazowe wierzchołki do rozwiązania, czy nie.
-   - Samoprzecięcia wrzucane są na stos wraz z indeksami. Jeżeli szczyt stosu pokrywa się z obecnym wierzchołkiem, sprawdzamy ile "dobrych" wierzchołków znajduje się pomiędzy - jeżeli co najmniej dwa, natrafiliśmy na pętlę.
+    Such found self-intersections are sorted by distance from point p1 and inserted into the sequence of vertices.
+5. In the next step, two operations are performed simultaneously:
+   - Whenever a self-intersection is encountered, it is toggled whether to add base vertices to the solution or not.
+   - Self-intersections are pushed onto a stack along with indices. If the top of the stack matches the current vertex, the number of "good" vertices in between is checked - if at least two, a loop is detected.
     
-    Zobrazujmy to na przykładzie.
+    Let's illustrate this with an example.
 
     ```
-    Niech (0, 1, P, 2, 3, N, 4, 5, 6, 7, 8, N, P, 9, 10, 11) oznaczają ciąg kolejnych wierzchołków, a N i P będą samoprzecięciami. 
+    Let (0, 1, P, 2, 3, N, 4, 5, 6, 7, 8, N, P, 9, 10, 11) represent a sequence of vertices, and N and P be self-intersections.
 
-    Dodane: 0, 1
-    Niedodane:
-    Zmiana stanu: P
+    Added: 0, 1
+    Not added:
+    State change: P
 
-    Dodane: 0, 1, P
-    Niedodane: 2, 3
-    Zmiana stanu: N
+    Added: 0, 1, P
+    Not added: 2, 3
+    State change: N
 
-    Dodane: 0, 1, P, N, 4, 5, 6, 7, 8
-    Niedodane: 2, 3
-    Zmiana stanu: N - pętla! (N oznaczane jest do usunięcia, w tym momencie sprawdzamy dodatkowo czy N, P i 9 nie są współliniowe, jeżeli tak, P oznaczane jest do usunięcia)
+    Added: 0, 1, P, N, 4, 5, 6, 7, 8
+    Not added: 2, 3
+    State change: N - loop! (N is marked for removal, additionally checking if N, P, and 9 are collinear, if so, P is marked for removal)
 
-    Dodane: 0, 1, P
-    Niedodane: 2, 3, N, 4, 5, 6, 7, 8, N
-    Zmiana stanu: P - pętla! (jak wyżej, jednak ponieważ na stosie jest tylko jeden wierzchołek, traktujemy P jako część głównej pętli i nie usuwamy jego pierwszego wystąpienia z rozwiązania)
+    Added: 0, 1, P
+    Not added: 2, 3, N, 4, 5, 6, 7, 8, N
+    State change: P - loop! (as above, but since only one vertex is on the stack, P is treated as part of the main loop and its first occurrence is not removed from the solution)
 
-    Dodane: 0, 1, P, 9, 10, 11
-    Niedodane: 2, 3, N, 4, 5, 6, 7, 8, N, P
+    Added: 0, 1, P, 9, 10, 11
+    Not added: 2, 3, N, 4, 5, 6, 7, 8, N, P
 
-    Finalnie znaleźliśmy jędną pętlę (N, 4, 5, 6, 7, 8), a głównym rozwiązaniem jest (0, 1, P, 9, 10, 11).
-    ``` 
-6. Pod koniec sprawdzana jest każda para sąsiadujących punktów głównego rozwiązania pod kątem zdublowanych wartości - jeżeli takowa zostanie napotkana (choć w teorii nie powinna) usuwamy jeden z wierzchołków.
-7. Finalnie, spradzamy każdą trójkę punktów p1, p2, p3 pod kątem współliniowości, poprzez obliczenie p2p1 × p2p3. Jeżeli takowa zachodzi, usuwamy punkt p2 z finalnego rozwiązania.
-
-## Kontakt
-W razie pytań proszę się ze mną kontatkować pod mailem bartosz.kaczorowski2.stud@pw.edu.pl.
+    Finally, we found one loop (N, 4, 5, 6, 7, 8), and the main solution is (0, 1, P, 9, 10, 11).
+    ```
+6. At the end, each pair of adjacent points in the main solution is checked for duplicate values - if such a value is found (though in theory it shouldn't be), one of the vertices is removed.
+7. Finally, each triplet of points p1, p2, p3 is checked for collinearity by calculating p2p1 × p2p3. If this condition is met, point p2 is removed from the final solution.
