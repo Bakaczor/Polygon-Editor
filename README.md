@@ -99,3 +99,6 @@ If an edge incident to the dragged edge has an orientation set, its non-incident
     ```
 6. At the end, each pair of adjacent points in the main solution is checked for duplicate values - if such a value is found (though in theory it shouldn't be), one of the vertices is removed.
 7. Finally, each triplet of points p1, p2, p3 is checked for collinearity by calculating p2p1 × p2p3. If this condition is met, point p2 is removed from the final solution.
+
+---
+*Copyright © 2024 Bartosz Kaczorowski*
