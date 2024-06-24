@@ -101,4 +101,4 @@ If an edge incident to the dragged edge has an orientation set, its non-incident
 7. Finally, each triplet of points p1, p2, p3 is checked for collinearity by calculating p2p1 × p2p3. If this condition is met, point p2 is removed from the final solution.
 
 ---
-*Copyright © 2024 Bartosz Kaczorowski*
+*Copyright © 2023 Bartosz Kaczorowski*
